@@ -10,7 +10,7 @@
 }
 
 .page-header h1 {
-  font-size: 1.8rem;
+  font-size: 28px;
   font-weight: 700;
   color: #111827;
   margin: 0;
@@ -22,7 +22,7 @@
   border: none;
   padding: 10px 24px;
   border-radius: 12px;
-  font-weight: 600;
+  font-size: 14px;
   cursor: pointer;
 }
 
@@ -63,26 +63,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 18px;
   flex-shrink: 0;
 }
 
 .name {
   font-weight: 700;
   color: #111827;
-  font-size: 1.1rem;
+  font-size: 18px;
   margin: 0;
 }
 
 .role {
   color: #6b7280;
-  font-size: 0.9rem;
+  font-size: 14px;
   margin: 4px 0 0 0;
 }
 
 .card h2 {
-  font-size: 1.2rem;
+  font-size: 20px;
   font-weight: 700;
   color: #111827;
   margin: 0 0 8px 0;
@@ -115,13 +114,13 @@
 
 .label {
   color: #6b7280;
-  font-size: 0.85rem;
+  font-size: 14px;
   margin: 0 0 4px 0;
 }
 
 .value {
   color: #111827;
-  font-size: 1rem;
+  font-size: 16px;
   margin: 0;
 }
 
@@ -129,8 +128,7 @@
   background: none;
   border: none;
   color: #5b3ce6;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 14px;
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -165,13 +163,13 @@
 
 .danger-info h3 {
   color: #991b1b;
-  font-size: 1rem;
+  font-size: 16px;
   margin: 0 0 4px 0;
 }
 
 .danger-info p {
   color: #b91c1c;
-  font-size: 0.85rem;
+  font-size: 14px;
   margin: 0;
 }
 
@@ -181,7 +179,7 @@
   background: transparent;
   padding: 10px 20px;
   border-radius: 12px;
-  font-weight: 600;
+  font-size: 14px;
   cursor: pointer;
   white-space: nowrap;
 }
