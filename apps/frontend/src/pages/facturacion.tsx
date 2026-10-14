@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { serviciosDisponibles, boletasIniciales } from '../data/boletas ';
+import { serviciosDisponibles, boletasIniciales } from '../data/boletas';
 import type { Boleta, TipoServicio } from '../types/boleta';
 import { formatearFecha, formatearMonto, fechaDeHoy } from '../utils/formato';
 import estilos from './facturacion.module.css';
