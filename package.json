@@ -4,7 +4,11 @@
   "packageManager": "pnpm@12.3.4",
   "scripts": {
     "dev": "pnpm -r --parallel dev",
-    "build": "pnpm -r build"
+    "build": "pnpm -r build",
+    "deploy": "vercel"
+  },
+  "devDependencies": {
+    "vercel": "64.0.2"
   },
   "devEngines": {
     "packageManager": {
@@ -12,5 +16,10 @@
       "version": "12.3.4",
       "onFail": "download"
     }
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
