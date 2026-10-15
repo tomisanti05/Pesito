@@ -36,7 +36,7 @@
   },
   ]
 export default function Subscripciones() {
-  const [subs,setSubscripciones] = useState<Subscripcion[]>(SubscripcionesPrueba) 
+  const [subs] = useState<Subscripcion[]>(SubscripcionesPrueba) 
   const totalGasto = subs.reduce((acc,sub) => acc + sub.monto,0)
   
   return (

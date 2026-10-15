@@ -72,7 +72,7 @@ const HISTORIAL_TOTAL: Transaccion[] = [
 ];
 
 export default function Tarjetas() {
-  const [tarjetas,setTarjetas] = useState<Tarjeta[]>(TARJETAS_INICIALES);
+  const [tarjetas] = useState<Tarjeta[]>(TARJETAS_INICIALES);
   const [tarjetaIndex,setTarjetaIndex] = useState(0)
   
   const tarjetaActiva = tarjetas[tarjetaIndex]
