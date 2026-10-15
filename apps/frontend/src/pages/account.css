@@ -1,0 +1,189 @@
+.account-page {
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.page-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.logout-btn {
+  background-color: #f3f4f6;
+  color: #374151;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 20px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #f1edfe;
+  color: #5b3ce6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.name {
+  font-weight: 700;
+  color: #111827;
+  font-size: 18px;
+  margin: 0;
+}
+
+.role {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 4px 0 0 0;
+}
+
+.card h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid #f3f4f6;
+  gap: 12px;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.icon {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.label {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0 0 4px 0;
+}
+
+.value {
+  color: #111827;
+  font-size: 16px;
+  margin: 0;
+}
+
+.edit-btn {
+  background: none;
+  border: none;
+  color: #5b3ce6;
+  font-size: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.edit-btn:hover {
+  text-decoration: underline;
+}
+
+.danger-card {
+  grid-column: span 2;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 20px;
+  padding: 24px 32px;
+  margin-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.danger-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.danger-icon {
+  color: #b91c1c;
+  flex-shrink: 0;
+}
+
+.danger-info h3 {
+  color: #991b1b;
+  font-size: 16px;
+  margin: 0 0 4px 0;
+}
+
+.danger-info p {
+  color: #b91c1c;
+  font-size: 14px;
+  margin: 0;
+}
+
+.delete-btn {
+  color: #b91c1c;
+  border: 1px solid #b91c1c;
+  background: transparent;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.delete-btn:hover {
+  background-color: #fee2e2;
+}

@@ -1,0 +1,84 @@
+.subscripciones-body{
+    max-width: 900px;
+    padding: 2rem;
+    width: 100%;
+}
+.metricas{
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+.metricas .gasto-total {
+    background-color: var(--color-bg-surface);
+    border-radius: 8px;
+    padding: 10px;
+    font-weight: 600;
+    
+}
+.metricas .proximo-cobro {
+    background-color: var(--color-bg-surface);
+    border-radius: 8px;
+    padding: 10px;
+    font-weight: 600;
+}
+.metricas .nueva-sub {
+    background-color: var(--color-bg-surface);
+    border-radius: 8px;
+    padding: 10px;
+    
+}
+.metricas .nueva-sub button{
+    font-weight: 600;
+    border: none;
+    padding: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.subscripciones {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    
+}
+.subscripcion-card{
+    display: grid;
+    grid-template-columns: 300px 1.8fr 1.5fr 100px 120px 100px;
+    gap: 1rem;
+    align-items: center;
+    padding: 1.5rem;
+    background-color: var(--color-bg-surface);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 8px;
+}
+
+.subscripcion-card .proveedor{
+    font-weight: 600;
+    background-color: var(--color-primary-light);
+    padding: 5px;
+    border-radius: 4px;
+}
+.subscripcion-card .plan-nombre{
+    font-weight: 600;
+    background-color: var(--color-primary-light);
+    padding: 5px;
+    border-radius: 4px;
+}
+.subscripcion-card .tarjeta-info{
+    font-weight: 600;
+    background-color: var(--color-primary-light);
+    padding: 5px;
+    border-radius: 4px;
+}
+.subscripcion-card .dia-cobro{
+    font-weight: 600;
+    background-color: var(--color-primary-light);
+    padding: 5px;
+    border-radius: 4px;
+}
+.subscripcion-card .monto{
+    font-weight: 600;
+    background-color: var(--color-primary-light);
+    padding: 5px;
+    border-radius: 4px;
+}

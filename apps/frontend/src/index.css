@@ -1,4 +1,40 @@
+  :root {
+  /* Tipografía */
+  --font-sans: system-ui, -apple-system, sans-serif;
+  /* Marca / Accent */
+  --color-primary: #5b3ce6;
+  --color-primary-light: #f1edfe;
+
+  /* Neutrales (Superficie y fondos) */
+  --color-bg-page: #f6f7fb;
+  --color-bg-surface: #ffffff;
+  --color-bg-hover: #f3f4f6;
+
+  /* Neutrales (Bordes) */
+  --color-border-subtle: #f3f4f6;
+  --color-border-default: #e5e7eb;
+
+  /* Neutrales (Tipografía e iconos) */
+  --color-text-primary: #111827;
+  --color-text-body: #374151;
+  --color-text-secondary: #6b7280;
+  --color-icon-muted: #9ca3af;
+
+  /* Sombras */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
+  
+  /* Peligro / Rojo */
+  --color-danger-bg: #fef2f2;
+  --color-danger-border: #fecaca;
+  --color-danger-hover: #fee2e2;
+  --color-danger-text: #b91c1c;
+  --color-danger-title: #991b1b;
+}
+
 body {
-  background-color: #f6f7fb; /* Fondo gris/celeste clarito del diseño */
   margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-bg-page);
+  color: var(--color-text-body);
+  -webkit-font-smoothing: antialiased;
 }

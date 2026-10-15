@@ -1,0 +1,152 @@
+.tarjetas-container{
+  padding: 2rem;
+  max-width: 1100px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.tarjetas-grid{
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 6.5rem;
+  align-items: start;
+}
+.tarjetas-body-izq{
+    display: flex;
+    flex-direction: column;
+}
+.tarjetas-body-der{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+.numero-tarjeta {
+  text-align: left;
+  background-color: var(--color-primary-light);
+  color: var(--color-text-primary);
+  border: none;
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.vencimiento-tarjeta {
+  text-align: left;
+  background-color: var(--color-primary-light);
+  color: var(--color-text-primary);
+  border: none;
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+.codigo-tarjeta {
+  text-align: left;
+  background-color: var(--color-primary-light);
+  color: var(--color-text-primary);
+  border: none;
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+.tarjetas-descripcion {
+    margin-top: 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-bg-surface);
+    border-radius: 8px;
+    padding: 20px;    
+}
+.datos-tarjeta button{
+  background-color: #f3f4f6;
+  color: var(--color-text-body);
+  border: none;
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  
+}
+.datos-tarjeta button:hover{
+  background-color: var(--color-primary-light);
+}
+.tarjetas-opciones{
+    display: flex;
+    background-color: var(--color-bg-surface);
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px;
+    border-color: var(--color-icon-muted);
+    border-radius: 8px;
+    }
+.boton-pausar{
+    padding-right: 20px;
+}
+.boton-pausar :hover{
+  background-color: var(--color-primary-light);
+}
+.boton-pausar button{
+  background-color: var(--color-bg-page);
+  color: var(--color-text-body);
+  border: none;
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+
+}
+.boton-borrar{
+    padding-right: 20px;
+}
+.boton-borrar button{
+  background-color: var(--color-danger-bg);
+  color: var(--color-danger-text);
+  border: none;
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.boton-borrar :hover{
+  background-color: var(--color-danger-hover);
+  border: 1px solid var(--color-danger-tittle) ;
+}
+.card-historial{
+    display: grid;
+    
+    grid-template-columns: 110px 1fr 100px;
+    gap:1rem;
+    align-items: center;
+    background-color: var(--color-bg-surface);
+    padding: 1.1rem 1.25rem;
+    border-bottom: 1px solid var(--color-primary-light);
+    border-radius: 8px;
+    
+}
+.card-historial .monto{
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--color-text-primary);
+    background-color: var(--color-danger-bg);
+    padding: 10px;
+    border-radius: 8px;
+    justify-self: end;
+}
+.card-historial .fecha-consumo{
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--color-text-primary);
+    padding: 10px;
+    border-radius: 8px;
+    background-color: var(--color-bg-hover)
+}
+.card-historial .lugar{
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--color-text-primary);
+    padding: 10px;
+    background-color: var(--color-bg-hover);
+    border-radius: 8px;
+}
