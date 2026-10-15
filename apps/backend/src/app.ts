@@ -1,6 +1,7 @@
 import express, { type NextFunction, type Request, type Response } from "express";
 import { connectDatabase } from "./config/database.js";
 import userRoutes from "./modules/routes/userRoutes.js";
+import transactionRoutes from "./modules/routes/transactionRoutes.js";
 
 const app = express();
 
@@ -20,6 +21,7 @@ async function conectarBase(_req: Request, _res: Response, next: NextFunction): 
 }
 
 app.use("/api/users", conectarBase, userRoutes);
+app.use("/api/transactions", conectarBase, transactionRoutes);
 
 app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
   console.error("[app] error no controlado:", error);
