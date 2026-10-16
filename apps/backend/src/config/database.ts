@@ -20,8 +20,17 @@ const sequelize = new Sequelize({
   },
 });
 
-export async function connectDatabase(): Promise<void> {
-  await sequelize.authenticate();
+let conexion: Promise<void> | null = null;
+
+export function connectDatabase(): Promise<void> {
+  if (!conexion) {
+    conexion = sequelize.authenticate().catch((error: unknown) => {
+      conexion = null;
+      throw error;
+    });
+  }
+
+  return conexion;
 }
 
 export default sequelize;
