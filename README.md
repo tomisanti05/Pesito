@@ -10,6 +10,12 @@ proyecto en Vercel.
 > consume **datos mock** y no esta conectado a la API (`apps/frontend/src/services/api.ts`
 > esta vacio).
 
+## Autores
+
+- Tomas Mertian
+- Ian Manfredi
+- Santiago De Dios
+
 ## Tecnologias
 
 | Capa          | Tecnologia                                  |
@@ -271,3 +277,5 @@ pnpm deploy
 - [ ] Autenticacion y autorizacion (existe el rol `admin` en `User` pero sin uso).
 - [ ] Tests automatizados (no hay configuracion de testing en el repo).
 - [ ] Revisar `.gitignore`: `.env*` tambien ignora `.env.example`.
+
+
