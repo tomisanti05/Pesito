@@ -1,6 +1,7 @@
 import { Decimal } from "decimal.js";
 import User from "../models/user.js";
 import Billetera from "../models/billetera.js";
+import { Transaction } from "sequelize";
 // PATRON STRATEGY PARA CALCULOS INGRESO EGRESO
 export interface calculoSaldoStrategy {
     calcularSaldo(saldo:string,monto:string):string;
@@ -25,8 +26,8 @@ export class egresoStrategy implements calculoSaldoStrategy{
     }
 }
 
-export function calcularNuevoSaldo(saldo:string,monto:string,tipo:string):string{
-    if (!monto || Number(monto) <= 0){
+export function calcularNuevoSaldo(saldo:string,tipo:string,monto:string):string{
+    if (!monto || new Decimal(monto).lte(0)){
         throw {status:400, message:"el monto debe ser positivo"}
     }
     const strategies: Record<string, calculoSaldoStrategy> ={ //diccionario de strategias
@@ -89,4 +90,21 @@ export async function editarBilletera(idBilletera:number,data:{nombre?:string;ti
     } 
     await billetera.save()
     return billetera
+}
+
+export async function aplicarMovimiento(idBilletera:number,tipo:string,monto:string,t:Transaction) {
+    const billetera = await Billetera.findByPk(idBilletera,{
+        transaction:t,
+        lock: t.LOCK.UPDATE // bloqueo pesimista para evitar condiciones de carrera en egresos simultaneos
+    });
+    
+    if (!billetera){
+        throw { status:404,message:"la billetera no existe"};
+    }
+    const nuevoSaldo = calcularNuevoSaldo(billetera.saldo,monto,tipo)
+    
+    billetera.saldo = nuevoSaldo
+    await billetera.save({ transaction: t});
+    
+    return billetera;
 }
