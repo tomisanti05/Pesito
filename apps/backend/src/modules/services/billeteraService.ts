@@ -43,5 +43,5 @@ export async function CrearBilletera(data:{idUsuario:number;nombre:string; tipo:
     if (!data.idUsuario || !data.nombre || !data.tipo){
         throw{ status: 400, message:" Faltan datos para la creacion de la billetera, por favor ingrese los datos correctos"}
     }
-    
+    // falta implementar clase usuario
 }
