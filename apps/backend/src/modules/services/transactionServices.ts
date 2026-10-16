@@ -1,5 +1,5 @@
 import { Transaction } from '../models/transaction.js';
-import { aplicarMovimiento } from './walletServices.js';
+import { aplicarMovimiento } from './billeteraService.js';
 import sequelize from '../../config/database.js';
 
 interface RegistrarTransaccionDTO {
