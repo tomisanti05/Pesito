@@ -1,7 +1,6 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import sequelize from '../../config/database.js';
-import { Wallet } from './wallet.js';
-
+import Billetera from './billetera.js';
 export interface TransactionAttributes {
   idTransaccion: number;
   idBilletera: number;
@@ -75,5 +74,5 @@ Transaction.init(
   }
 );
 
-Transaction.belongsTo(Wallet, { foreignKey: 'idBilletera', as: 'billetera' });
-Wallet.hasMany(Transaction, { foreignKey: 'idBilletera', as: 'transacciones' });
+Transaction.belongsTo(Billetera, { foreignKey: 'idBilletera', as: 'billetera' });
+Billetera.hasMany(Transaction, { foreignKey: 'idBilletera', as: 'transacciones' });
