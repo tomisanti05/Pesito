@@ -1,4 +1,6 @@
 import { Decimal } from "decimal.js";
+import User from "../models/user.js";
+import Billetera from "../models/billetera.js";
 // PATRON STRATEGY PARA CALCULOS INGRESO EGRESO
 export interface calculoSaldoStrategy {
     calcularSaldo(saldo:string,monto:string):string;
@@ -43,5 +45,48 @@ export async function CrearBilletera(data:{idUsuario:number;nombre:string; tipo:
     if (!data.idUsuario || !data.nombre || !data.tipo){
         throw{ status: 400, message:" Faltan datos para la creacion de la billetera, por favor ingrese los datos correctos"}
     }
-    // falta implementar clase usuario
+    const usuario = await User.findByPk(data.idUsuario);
+
+    if(!usuario){
+        throw { status:404,message:"el usuario no existe"};
+    }
+    if(!usuario.activo){
+        throw { status:400,message:"el usuario esta inactivo"};
+    }
+
+    return await Billetera.create({
+        idUsuario: data.idUsuario,
+        nombre:data.nombre,
+        tipo:data.tipo,
+        saldo:"0.00"
+    });
+}
+
+export async function obtenerBilleteraPorId(idBilletera:number) {
+    const billetera = await Billetera.findByPk(idBilletera);
+
+    if(!billetera){
+        throw { status:404,message:"la billetera no existe"};
+    }
+    return billetera
+}
+
+export async function editarBilletera(idBilletera:number,data:{nombre?:string;tipo?:string;saldo?:any;idUsuario?:any;}) {
+    if (data.saldo !== undefined || data.idUsuario !== undefined){
+        throw {status:400,message:"no se permite modificar el saldo o el propietario de la billetera"};
+    }
+    
+    const billetera = await Billetera.findByPk(idBilletera)
+    if (!billetera){
+        throw { status:404,message:"la billetera no existe"};
+    }
+
+    if(data.nombre){
+        billetera.nombre = data.nombre.trim();
+    } 
+    if(data.tipo){
+        billetera.tipo = data.tipo.trim();
+    } 
+    await billetera.save()
+    return billetera
 }
