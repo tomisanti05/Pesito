@@ -9,31 +9,28 @@ En este documento explicamos las dos decisiones de diseño aplicadas sobre el ba
 - `services/billeteraService.ts`
 - `models/billetera.ts`
 
-### 1. Codigo analizado
-La logica de negocio encargada de tomar el saldo actual de la billetera, el monto de la operacion y el tipo de movimiento (`ingreso` o `egreso`) para determinar el nuevo saldo antes de persistirlo.
+### 1. Estructura de Defensa para el Coloquio
+- **El Problema (Code Smell):**
+  - *Contexto:* Sumar un ingreso (validando límites de almacenamiento) y restar un egreso (verificando fondos disponibles y lanzando error 409 si el saldo no alcanza) tienen reglas de negocio muy distintas.
+  - *Falla:* Resolver todo en una misma función usando condicionales (if / else if) acumula responsabilidades y rompe el principio Open/Closed (OCP).
+- **La Alternativa Descartada:**
+  - *Opción:* Usar una función simple con un if/else, como contempla el documento del MVP para dos ramas.
+  - *Por qué se descartó:* Acopla toda la lógica en un solo bloque y obliga a modificar esa misma función cada vez que cambie o se agregue una regla financiera.
+- **La Solución (Patrón Strategy - Clase 6):**
+  - *Contrato común:* Se creó la interfaz `CalculoSaldoStrategy` con el método `calcularSaldo(saldo, monto)`.
+  - *Estrategias aisladas:* `IngresoStrategy` y `EgresoStrategy` encapsulan sus propias reglas por separado.
+  - *Contexto:* La función `calcularNuevoSaldo` recibe la operación y delega el cálculo en tiempo de ejecución (runtime) sin hacer la cuenta directamente.
+- **Costo vs. Beneficio (Trade-off):**
+  - *Costo asumido:* Mayor cantidad de archivos e indirección para un MVP de solo dos operaciones.
+  - *Beneficio:* Permite hacer tests unitarios en memoria (sin tocar la base de datos) y prepara el sistema para agregar reglas futuras (retenciones, tarjetas, etc.) sin tocar el flujo transaccional ni el consumidor.
 
-### 2. Diagnostico (Problema detectado y Code Smell)
-Al procesar un movimiento financiero, las reglas de negocio varian segun la operacion:
-- Un **ingreso** suma dinero y valida que no se superen topes permitidos.
-- Un **egreso** debe verificar primero que la billetera cuente con fondos suficientes y restar el monto, devolviendo un error de conflicto de negocio (409) si el saldo no alcanza.
-
-Si resolviamos esto dentro de una misma funcion acumulando condicionales (`if (tipo === 'ingreso') ... else if (tipo === 'egreso') ...`), juntabamos responsabilidades distintas en un solo bloque. Cada nueva regla financiera nos obligaria a entrar a modificar la misma funcion, violando el principio OCP y generando un punto de cambio fragil ante futuros cambios.
-
-### 3. Alternativas evaluadas
-- **Opcion A - Dejar un condicional simple (if/else):** Para dos ramas fijas era la opcion mas corta. La descartamos porque acoplaba calculos diferentes en un unico lugar y obligaba a tocar codigo existente cada vez que apareciera una regla nueva.
-- **Opcion B - Implementar el patron Strategy:** Opcion elegida. Permite aislar cada variante matematica en clases independientes y puras en memoria.
-
-### 4. Decision tomada
-Implementamos el patron **Strategy**:
-- Se definio un contrato comun a traves de la interfaz `CalculoSaldoStrategy` con el metodo `calcularSaldo(saldo, monto)`.
-- Se crearon dos estrategias concretas: `IngresoStrategy` y `EgresoStrategy`. Cada una resuelve su calculo exclusivo en memoria utilizando precision decimal exacta (`decimal.js`).
-- La funcion `calcularNuevoSaldo` en `billeteraService.ts` funciona como el contexto: recibe el tipo enviado por el cliente en runtime, selecciona la estrategia correspondiente de un mapa de estrategias y le delega el calculo.
-- **Aclaracion clave de diseno:** La estrategia no consulta la base de datos ni aplica bloqueos. Es un algoritmo puro en memoria. La busqueda en la tabla `wallets`, el bloqueo pesimista de fila (`lock: t.LOCK.UPDATE`) y el guardado con la transaccion `t` quedan a cargo del servicio dentro de `aplicarMovimiento`.
-
-### 5. Evidencia y Trade-offs
-- **Evidencia en el codigo:** En `billeteraService.ts`, el mapa de estrategias selecciona la instancia correspondiente segun el parametro `tipo` recibido en la peticion HTTP.
-- **Lo que ganamos:** Codigo cerrado a la modificacion y abierto a la extension (OCP). Se facilita el testing unitario de cada calculo matematico en memoria sin necesidad de levantar una base de datos real. Si el dia de mañana se suman transferencias, comisiones o retenciones, solo se agrega un archivo nuevo sin tocar los existentes.
-- **El precio que pagamos:** Para un MVP de solo dos operaciones fijas (ingreso y egreso), crear interfaces y clases separadas suma mas archivos, rozando el overengineering.
+### 2. Posibles Preguntas de los Docentes
+- **¿Por qué la estrategia no consulta ni guarda en la base de datos?**
+  - *Idea clave:* Strategy solo aísla el algoritmo matemático para que sea exacto y esté desacoplado de la persistencia.
+  - *Quién lo hace:* `walletServices.ts` (dentro de `aplicarMovimiento`) es quien busca la fila, la bloquea (`lock: t.LOCK.UPDATE`) y guarda los cambios usando la transacción `t`.
+- **¿Quién y cómo elige la estrategia en tiempo de ejecución?**
+  - *Idea clave:* Se elige en runtime según el campo `tipo` ("ingreso" o "egreso") que envía el usuario en la petición HTTP.
+  - *Cómo funciona:* Ese valor busca la estrategia en un diccionario (`Record<string, CalculoSaldoStrategy>`). Si el tipo no existe en el mapa, se rechaza con un error 400.
 
 ---
 
