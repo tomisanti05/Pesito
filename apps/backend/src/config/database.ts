@@ -15,6 +15,8 @@ const sequelize = new Sequelize({
   password: process.env.DB_PASSWORD,
   dialect: "postgres",
   logging: false,
+  define: { underscored: true },
+  pool: { max: 3, min: 0, idle: 10000 },
   dialectOptions: {
     ssl: { require: true, rejectUnauthorized: false },
   },
@@ -29,7 +31,6 @@ export function connectDatabase(): Promise<void> {
       throw error;
     });
   }
-
   return conexion;
 }
 

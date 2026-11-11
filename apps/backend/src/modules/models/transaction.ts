@@ -1,11 +1,12 @@
-import { DataTypes, Model, Optional } from 'sequelize';
-import sequelize from '../../config/database.js';
-import Billetera from './billetera.js';
+import { DataTypes, Model, Optional } from "sequelize";
+import sequelize from "../../config/database.js";
+import Billetera from "./billetera.js";
+
 export interface TransactionAttributes {
   idTransaccion: number;
   idBilletera: number;
   monto: string;
-  tipo: 'ingreso' | 'egreso';
+  tipo: "ingreso" | "egreso";
   categoria: string;
   fecha: string;
   descripcion?: string;
@@ -15,7 +16,7 @@ export interface TransactionAttributes {
 
 export type TransactionCreationAttributes = Optional<
   TransactionAttributes,
-  'idTransaccion' | 'createdAt' | 'updatedAt'
+  "idTransaccion" | "createdAt" | "updatedAt"
 >;
 
 export class Transaction
@@ -25,7 +26,7 @@ export class Transaction
   public idTransaccion!: number;
   public idBilletera!: number;
   public monto!: string;
-  public tipo!: 'ingreso' | 'egreso';
+  public tipo!: "ingreso" | "egreso";
   public categoria!: string;
   public fecha!: string;
   public descripcion?: string;
@@ -39,40 +40,30 @@ Transaction.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      field: "id",
     },
     idBilletera: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: { model: 'Billeteras', key: 'idBilletera' },
+      field: "idBilletera",
     },
-    monto: {
-      type: DataTypes.DECIMAL(14, 2),
-      allowNull: false,
-    },
-    tipo: {
-      type: DataTypes.ENUM('ingreso', 'egreso'),
-      allowNull: false,
-    },
-    categoria: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    fecha: {
-      type: DataTypes.DATEONLY,
-      allowNull: false,
-    },
-    descripcion: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
+    monto: { type: DataTypes.DECIMAL(14, 2), allowNull: false },
+    tipo: { type: DataTypes.ENUM("ingreso", "egreso"), allowNull: false },
+    categoria: { type: DataTypes.STRING(100), allowNull: false },
+    fecha: { type: DataTypes.DATEONLY, allowNull: false },
+    descripcion: { type: DataTypes.STRING(255), allowNull: true },
+    createdAt: { type: DataTypes.DATE, allowNull: false },
+    updatedAt: { type: DataTypes.DATE, allowNull: false },
   },
   {
     sequelize,
-    modelName: 'Transaction',
-    tableName: 'Transacciones',
+    tableName: "Transaccion",
     timestamps: true,
-  }
+  },
 );
 
-Transaction.belongsTo(Billetera, { foreignKey: 'idBilletera', as: 'billetera' });
-Billetera.hasMany(Transaction, { foreignKey: 'idBilletera', as: 'transacciones' });
+Transaction.belongsTo(Billetera, { foreignKey: "idBilletera", as: "billetera" });
+Billetera.hasMany(Transaction, { foreignKey: "idBilletera", as: "transacciones" });
+
+export default Transaction;
+export { Transaction as Transaccion };
