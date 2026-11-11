@@ -22,7 +22,9 @@ async function conectarBase(_req: Request, _res: Response, next: NextFunction): 
 
 app.use("/api/users", conectarBase, userRoutes);
 app.use("/api/transactions", conectarBase, transactionRoutes);
-app.use("/api/billetera",conectarBase, billeteraRoutes);
+app.use("/api/v1/billeteras", conectarBase, billeteraRoutes);
+// Alias para no romper el front existente
+app.use("/api/billetera", conectarBase, billeteraRoutes);
 
 app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
   console.error("[app] error no controlado:", error);
