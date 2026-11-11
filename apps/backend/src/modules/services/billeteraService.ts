@@ -1,7 +1,19 @@
 import { Decimal } from "decimal.js";
 import User from "../models/user.js";
 import Billetera from "../models/billetera.js";
-import { Transaction } from "sequelize";
+import { Op, Transaction } from "sequelize";
+import type { PaginationParams } from "../../utils/pagination.js";
+
+// Campos por los que se puede ordenar el listado de billeteras
+export const CAMPOS_ORDEN_BILLETERA = [
+    "idBilletera",
+    "nombre",
+    "tipo",
+    "saldo",
+    "createdAt",
+    "updatedAt",
+] as const;
+
 // PATRON STRATEGY PARA CALCULOS INGRESO EGRESO
 export interface calculoSaldoStrategy {
     calcularSaldo(saldo:string,monto:string):string;
@@ -70,6 +82,42 @@ export async function obtenerBilleteraPorId(idBilletera:number) {
         throw { status:404,message:"la billetera no existe"};
     }
     return billetera
+}
+
+export async function listarBilleteras(paginacion: PaginationParams) {
+    const where = paginacion.search
+        ? {
+            [Op.or]: [
+                { nombre: { [Op.iLike]: `%${paginacion.search}%` } },
+                { tipo: { [Op.iLike]: `%${paginacion.search}%` } },
+            ],
+        }
+        : undefined;
+
+    const { rows, count } = await Billetera.findAndCountAll({
+        where,
+        limit: paginacion.limit,
+        offset: paginacion.offset,
+        order: paginacion.order,
+    });
+
+    return {
+        data: rows,
+        total: count,
+        page: paginacion.page,
+        limit: paginacion.limit,
+    };
+}
+
+export async function eliminarBilletera(idBilletera:number) {
+    const billetera = await Billetera.findByPk(idBilletera);
+    if (!billetera){
+        throw { status:404,message:"la billetera no existe"};
+    }
+
+    // Las transacciones asociadas se eliminan por ON DELETE CASCADE del esquema
+    await billetera.destroy();
+    return billetera;
 }
 
 export async function editarBilletera(idBilletera:number,data:{nombre?:string;tipo?:string;saldo?:any;idUsuario?:any;}) {
