@@ -22,7 +22,7 @@ export default function Layout() {
                     <NavLink
                     key={link.path}
                     to={link.path}
-                    className= {({ isActive }: any) => isActive ? "white" : "gray"}
+                    className= {({ isActive }: { isActive: boolean }) => isActive ? "white" : "gray"}
                     >
                         <div className='link-left'>
 
