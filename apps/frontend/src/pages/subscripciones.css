@@ -82,3 +82,239 @@
     padding: 5px;
     border-radius: 4px;
 }
+
+.subscripciones-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.subscripciones-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--color-text-primary);
+}
+
+.subscripciones-body .btn-primario,
+.subscripciones-body .btn-secundario,
+.subscripciones-body .btn-peligro {
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 8px 14px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.subscripciones-body .btn-primario {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.subscripciones-body .btn-primario:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+}
+
+.subscripciones-body .btn-secundario {
+  background-color: var(--color-bg-surface);
+  border-color: var(--color-border-default);
+  color: var(--color-text-body);
+}
+
+.subscripciones-body .btn-secundario:hover:not(:disabled) {
+  background-color: var(--color-bg-hover);
+}
+
+.subscripciones-body .btn-peligro {
+  background-color: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
+  color: var(--color-danger-text);
+  white-space: nowrap;
+}
+
+.subscripciones-body .btn-peligro:hover:not(:disabled) {
+  background-color: var(--color-danger-hover);
+}
+
+.subscripciones-body button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.subscripciones-buscador {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.subscripciones-buscador input {
+  flex: 1;
+  max-width: 360px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.9rem;
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
+}
+
+.subscripciones-buscador input:focus {
+  outline: 2px solid var(--color-focus-ring);
+  border-color: var(--color-primary);
+}
+
+.subscripciones-contador {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
+.subscripciones-vacio {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.subscripciones-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background-color: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
+  color: var(--color-danger-text);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.subscripciones-error button {
+  background: transparent;
+  border: 1px solid var(--color-danger-text);
+  color: var(--color-danger-text);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.subscripcion-acciones {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.subscripcion-card.inactiva {
+  opacity: 0.65;
+}
+
+.estado-inactiva {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 600;
+  color: var(--color-danger-text);
+  background-color: var(--color-danger-bg);
+  border-radius: 999px;
+  padding: 1px 6px;
+}
+
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
+.subscripciones-body .modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 50;
+}
+
+.subscripciones-body .modal-card {
+  width: 100%;
+  max-width: 420px;
+  background-color: var(--color-bg-surface);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow-modal);
+}
+
+.subscripciones-body .modal-card h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.15rem;
+  color: var(--color-text-primary);
+}
+
+.subscripciones-body .campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+  color: var(--color-text-body);
+}
+
+.subscripciones-body .campo input {
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-surface);
+}
+
+.subscripciones-body .campo input:focus {
+  outline: 2px solid var(--color-focus-ring);
+  border-color: var(--color-primary);
+}
+
+.campo-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--color-text-body);
+  margin-bottom: 8px;
+}
+
+.subscripciones-body .modal-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+@media (max-width: 860px) {
+  .subscripcion-card {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .subscripcion-acciones {
+    justify-content: flex-start;
+  }
+
+  .subscripciones-header,
+  .subscripciones-buscador {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .subscripciones-buscador input {
+    width: 100%;
+    max-width: none;
+  }
+}
