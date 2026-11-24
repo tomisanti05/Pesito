@@ -6,86 +6,103 @@
   gap: 24px;
 }
 
+.inicio-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .inicio h1 {
-  color: #111827;
+  color: var(--color-text-primary);
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0;
 }
 
-.saldo-card {
-  background: linear-gradient(135deg, #5b3ce6, #7c5cf0);
-  color: #ffffff;
-  padding: 24px;
-  border-radius: 20px;
-  box-shadow: 0 10px 24px rgba(91, 60, 230, 0.25);
+.inicio-subtitulo {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
 }
 
-.saldo-card h2 {
+.inicio .saldo-card {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-primary-gradient-end)
+  );
+  color: var(--color-text-on-primary);
+  padding: 24px;
+  border-radius: 20px;
+  box-shadow: var(--shadow-primary);
+}
+
+.inicio .saldo-card h2 {
   margin: 0 0 8px 0;
   font-size: 1rem;
   font-weight: 500;
   opacity: 0.9;
 }
 
-.saldo {
+.inicio .saldo {
   margin: 0;
   font-size: 2rem;
   font-weight: 700;
 }
 
 .inicio-resumen {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
 
 .inicio-card {
-  flex: 1;
-  background-color: #ffffff;
-  border: 1px solid #dce1ea;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
   border-radius: 16px;
   padding: 16px;
-  box-shadow: 0 6px 18px rgba(17, 24, 39, 0.10);
+  box-shadow: var(--shadow-card);
 }
 
 .inicio-card h3 {
   margin: 0 0 8px 0;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
 
 .inicio-card p {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
+  color: var(--color-text-primary);
 }
 
 .inicio-card.ingreso p {
-  color: #16a34a;
+  color: var(--color-success-text);
 }
 
 .inicio-card.gasto p {
-  color: #dc2626;
+  color: var(--color-danger-text);
 }
 
 .inicio-card.ahorro p {
-  color: #5b3ce6;
+  color: var(--color-primary);
 }
 
 .inicio-seccion {
-  background-color: #ffffff;
-  border: 1px solid #dce1ea;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 6px 18px rgba(17, 24, 39, 0.10);
+  box-shadow: var(--shadow-card);
 }
 
 .inicio-seccion h2 {
   margin: 0 0 12px 0;
   font-size: 1rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--color-text-primary);
 }
 
 .inicio-fila {
@@ -93,9 +110,9 @@
   align-items: center;
   gap: 12px;
   padding: 12px 0;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--color-border-subtle);
   font-size: 0.95rem;
-  color: #374151;
+  color: var(--color-text-body);
 }
 
 .inicio-fila:last-child {
@@ -111,13 +128,22 @@
 }
 
 .inicio-fecha {
-  color: #9ca3af;
+  color: var(--color-icon-muted);
   font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .inicio-monto {
   font-weight: 600;
-  color: #111827;
+  white-space: nowrap;
+}
+
+.inicio-monto.ingreso {
+  color: var(--color-success-text);
+}
+
+.inicio-monto.gasto {
+  color: var(--color-danger-text);
 }
 
 .dot {
@@ -128,35 +154,76 @@
 }
 
 .dot.ingreso {
-  background-color: #16a34a;
+  background-color: var(--color-success-text);
 }
 
 .dot.gasto {
-  background-color: #dc2626;
+  background-color: var(--color-danger-text);
 }
 
-.vence-chip {
-  background-color: #fef3c7;
-  color: #92400e;
+.inicio-vacio {
+  margin: 8px 0;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.inicio-estado {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.inicio-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background-color: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
+  color: var(--color-danger-text);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+}
+
+.inicio-error button {
+  background: transparent;
+  border: 1px solid var(--color-danger-text);
+  color: var(--color-danger-text);
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
   font-size: 0.8rem;
-  font-weight: 500;
-  padding: 2px 10px;
-  border-radius: 999px;
-  white-space: nowrap;
 }
 
-.inicio-fila .ingreso {
-  color: #16a34a;
-  font-weight: 600;
-}
-
-.inicio-fila .gasto {
-  color: #dc2626;
-  font-weight: 600;
+.inicio-error button:focus-visible,
+.inicio-error button:hover {
+  background-color: var(--color-danger-hover);
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
 }
 
 @media (max-width: 640px) {
   .inicio-resumen {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+  }
+
+  .inicio-fila {
+    flex-wrap: wrap;
+  }
+
+  .inicio-concepto {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .inicio .saldo-card,
+  .inicio-seccion {
+    padding: 16px;
+  }
+
+  .inicio .saldo {
+    font-size: 1.6rem;
   }
 }
