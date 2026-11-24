@@ -33,6 +33,19 @@ export interface Suscripcion {
   updatedAt: string;
 }
 
+export type RolUsuario = "usuario" | "admin";
+
+export interface Usuario {
+  id: number;
+  nombre: string;
+  email: string;
+  telefono: string | null;
+  rol: RolUsuario;
+  activo: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ListaPaginada<T> {
   data: T[];
   total: number;
