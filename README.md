@@ -138,22 +138,30 @@ El formato de error es `{ "mensaje": "..." }` (usuarios) o `{ "error": "..." }`
 
 ### Usuarios (`/api/users`)
 
-| Metodo | Ruta            | Descripcion             |
-| ------ | --------------- | ----------------------- |
-| POST   | `/api/users`    | Crear usuario           |
-| GET    | `/api/users`    | Listar usuarios         |
-| GET    | `/api/users/:id`| Obtener usuario por ID  |
+| Metodo | Ruta            | Descripcion                                      |
+| ------ | --------------- | ------------------------------------------------ |
+| POST   | `/api/users`    | Crear usuario                                    |
+| GET    | `/api/users`    | Listar usuarios paginados                        |
+| GET    | `/api/users/:id`| Obtener usuario por ID                           |
+| PUT    | `/api/users/:id`| Editar usuario                                   |
+| PATCH  | `/api/users/:id`| Editar usuario parcialmente                      |
+| DELETE | `/api/users/:id`| Dar de baja logica (`activo = false`)            |
+
+El listado acepta `page`, `limit`, `search`, `rol`, `activo`, `sortBy` y `order`.
+Devuelve `{ "data": [], "total": 0, "page": 1, "limit": 10 }`.
 
 Ejemplo de creacion:
 
 ```bash
 curl -X POST http://localhost:3000/api/users \
   -H "Content-Type: application/json" \
-  -d '{"nombre": "Ana Perez", "email": "ana@example.com"}'
+  -d '{"nombre": "Ana Perez", "email": "ana@example.com", "telefono": "11 5555 1234"}'
 ```
 
 Reglas de validacion: `nombre` y `email` obligatorios; `nombre` solo letras y espacios
-(max 100); `email` con formato valido (max 150) y unico (409 si ya existe).
+(max 100); `email` con formato valido (max 150) y unico (409 si ya existe); `telefono`
+opcional (max 30). En la edicion se pueden cambiar `nombre`, `email`, `telefono`, `rol`
+y `activo`; un body vacio devuelve 400.
 
 ### Billeteras (`/api/billetera`)
 
