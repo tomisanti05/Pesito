@@ -1,7 +1,7 @@
 {
   "name": "sistema-gestion-finanzas-root",
   "private": true,
-  "packageManager": "pnpm@12.3.4",
+  "packageManager": "pnpm@12.18.0",
   "scripts": {
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
@@ -13,7 +13,7 @@
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
-      "version": "12.3.4",
+      "version": "12.18.0",
       "onFail": "download"
     }
   },

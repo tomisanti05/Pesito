@@ -1,19 +1,28 @@
 import { Router } from "express";
 import {
+    listarBilleteras,
     crearBilletera,
     obtenerBilleteraPorId,
-    editarBilletera
-} from "../controllers/billeteraController.js"; 
+    editarBilletera,
+    eliminarBilletera,
+} from "../controllers/billeteraController.js";
 
 const router = Router();
 
-// POST /api/wallets
+// GET /api/v1/billeteras -> Listado paginado
+router.get("/", listarBilleteras);
+
+// POST /api/v1/billeteras
 router.post("/", crearBilletera);
 
-// GET /api/wallets/:id
+// GET /api/v1/billeteras/:id
 router.get("/:id", obtenerBilleteraPorId);
 
-// PUT /api/wallets/:id
+// PUT/PATCH /api/v1/billeteras/:id
 router.put("/:id", editarBilletera);
+router.patch("/:id", editarBilletera);
+
+// DELETE /api/v1/billeteras/:id
+router.delete("/:id", eliminarBilletera);
 
 export default router;

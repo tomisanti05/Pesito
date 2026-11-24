@@ -3,6 +3,7 @@ import { connectDatabase } from "./config/database.js";
 import userRoutes from "./modules/routes/userRoutes.js";
 import transactionRoutes from "./modules/routes/transactionRoutes.js";
 import billeteraRoutes from "./modules/routes/billeteraRoutes.js"
+import suscripcionRoutes from "./modules/routes/suscripcionRoutes.js"
 const app = express();
 
 app.use(express.json());
@@ -22,7 +23,12 @@ async function conectarBase(_req: Request, _res: Response, next: NextFunction): 
 
 app.use("/api/users", conectarBase, userRoutes);
 app.use("/api/transactions", conectarBase, transactionRoutes);
-app.use("/api/billetera",conectarBase, billeteraRoutes);
+app.use("/api/v1/billeteras", conectarBase, billeteraRoutes);
+// Alias para no romper el front existente
+app.use("/api/billetera", conectarBase, billeteraRoutes);
+app.use("/api/v1/suscripciones", conectarBase, suscripcionRoutes);
+// Alias corto
+app.use("/api/suscripciones", conectarBase, suscripcionRoutes);
 
 app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
   console.error("[app] error no controlado:", error);
