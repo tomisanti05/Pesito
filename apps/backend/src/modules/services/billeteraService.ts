@@ -149,7 +149,7 @@ export async function aplicarMovimiento(idBilletera:number,tipo:string,monto:str
     if (!billetera){
         throw { status:404,message:"la billetera no existe"};
     }
-    const nuevoSaldo = calcularNuevoSaldo(billetera.saldo,monto,tipo)
+    const nuevoSaldo = calcularNuevoSaldo(billetera.saldo,tipo,monto)
     
     billetera.saldo = nuevoSaldo
     await billetera.save({ transaction: t});
