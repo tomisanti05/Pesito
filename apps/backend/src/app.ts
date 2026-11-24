@@ -4,6 +4,7 @@ import userRoutes from "./modules/routes/userRoutes.js";
 import transactionRoutes from "./modules/routes/transactionRoutes.js";
 import billeteraRoutes from "./modules/routes/billeteraRoutes.js"
 import suscripcionRoutes from "./modules/routes/suscripcionRoutes.js"
+import tarjetaRoutes from "./modules/routes/tarjetaRoutes.js"
 const app = express();
 
 app.use(express.json());
@@ -29,6 +30,9 @@ app.use("/api/billetera", conectarBase, billeteraRoutes);
 app.use("/api/v1/suscripciones", conectarBase, suscripcionRoutes);
 // Alias corto
 app.use("/api/suscripciones", conectarBase, suscripcionRoutes);
+app.use("/api/v1/tarjetas", conectarBase, tarjetaRoutes);
+// Alias corto
+app.use("/api/tarjetas", conectarBase, tarjetaRoutes);
 
 app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
   console.error("[app] error no controlado:", error);
