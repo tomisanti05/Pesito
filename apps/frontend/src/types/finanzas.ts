@@ -46,6 +46,20 @@ export interface Usuario {
   updatedAt: string;
 }
 
+export type TipoTarjeta = "visa" | "mastercard" | "amex" | "otra";
+
+export interface Tarjeta {
+  id: number;
+  idUsuario: number;
+  tipo: TipoTarjeta;
+  ultimosCuatro: string;
+  titular: string;
+  vencimiento: string;
+  activa: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ListaPaginada<T> {
   data: T[];
   total: number;
