@@ -32,3 +32,25 @@ export async function obtenerTransaccion(req: Request, res: Response) {
     return res.status(status).json({ error: error.message });
   }
 }
+
+export async function editarTransaccion(req: Request, res: Response) {
+  try {
+    const transaccion = await transactionService.editTransaction(Number(req.params.id), req.body);
+    return res.status(200).json(transaccion);
+  } catch (error: any) {
+    const status = error.status || 500;
+    const mensaje = error.message || 'Error interno';
+    return res.status(status).json({ error: mensaje });
+  }
+}
+
+export async function eliminarTransaccion(req: Request, res: Response) {
+  try {
+    const transaccion = await transactionService.deleteTransaction(Number(req.params.id));
+    return res.status(200).json(transaccion);
+  } catch (error: any) {
+    const status = error.status || 500;
+    const mensaje = error.message || 'Error interno';
+    return res.status(status).json({ error: mensaje });
+  }
+}
