@@ -1,10 +1,11 @@
 export type TipoServicio = 'luz' | 'agua' | 'gas' | 'internet' | 'otro';
 
-export type Boleta = {
-  id: number;
-  tipo: TipoServicio;
+export interface Boleta {
+  idBoleta: number;
+  idUsuario: number;
+  tipoServicio: TipoServicio;
+  monto: string;
   fechaVencimiento: string;
-  monto: number;
   pagada: boolean;
-  fechaPago: string;
-};
+  fechaPago?: string | null;
+}
