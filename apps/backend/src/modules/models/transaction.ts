@@ -23,15 +23,15 @@ export class Transaction
   extends Model<TransactionAttributes, TransactionCreationAttributes>
   implements TransactionAttributes
 {
-  public idTransaccion!: number;
-  public idBilletera!: number;
-  public monto!: string;
-  public tipo!: "ingreso" | "egreso";
-  public categoria!: string;
-  public fecha!: string;
-  public descripcion?: string;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  declare idTransaccion: number;
+  declare idBilletera: number;
+  declare monto: string;
+  declare tipo: "ingreso" | "egreso";
+  declare categoria: string;
+  declare fecha: string;
+  declare descripcion?: string;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 Transaction.init(
