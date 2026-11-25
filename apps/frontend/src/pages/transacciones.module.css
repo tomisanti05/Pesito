@@ -1,0 +1,169 @@
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 800px;
+}
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.buscador {
+  padding: 8px 12px;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.contador {
+  margin: 0;
+  opacity: 0.7;
+}
+
+.fila {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  border-radius: 8px;
+}
+
+.detalle {
+  flex: 1;
+  min-width: 0;
+}
+
+.titulo {
+  margin: 0;
+}
+
+.subtitulo {
+  margin: 4px 0 0;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.ingreso {
+  margin: 0;
+  color: #2e7d32;
+}
+
+.egreso {
+  margin: 0;
+  color: #c62828;
+}
+
+.acciones {
+  display: flex;
+  gap: 8px;
+}
+
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.primario,
+.secundario,
+.peligro {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.primario {
+  border: 1px solid #1565c0;
+  background: #1565c0;
+  color: #ffffff;
+}
+
+.secundario {
+  border: 1px solid rgba(128, 128, 128, 0.5);
+  background: transparent;
+  color: inherit;
+}
+
+.peligro {
+  border: 1px solid #c62828;
+  background: transparent;
+  color: #c62828;
+}
+
+.primario:disabled,
+.secundario:disabled,
+.peligro:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.vacio {
+  text-align: center;
+  opacity: 0.7;
+}
+
+.error,
+.errorModal {
+  padding: 8px 12px;
+  border: 1px solid #c62828;
+  border-radius: 8px;
+  color: #c62828;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.errorModal {
+  margin: 0 0 16px;
+}
+
+.fondo {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+}
+
+.modal {
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px;
+  border-radius: 12px;
+  background: Canvas;
+  color: CanvasText;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.campo input,
+.campo select {
+  padding: 8px 12px;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
