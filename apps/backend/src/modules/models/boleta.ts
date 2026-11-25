@@ -47,18 +47,39 @@ Boleta.init(
       allowNull: false,
       field: "idUsuario",
     },
-    tipoServicio: { type: DataTypes.STRING(20), allowNull: false },
-    monto: { type: DataTypes.DECIMAL(14, 2), allowNull: false },
-    fechaVencimiento: { type: DataTypes.DATEONLY, allowNull: false },
-    pagada: { type: DataTypes.BOOLEAN, defaultValue: false },
-    fechaPago: { type: DataTypes.DATEONLY, allowNull: true },
-    createdAt: { type: DataTypes.DATE, allowNull: false },
-    updatedAt: { type: DataTypes.DATE, allowNull: false },
+    tipoServicio: { 
+      type: DataTypes.STRING(20), 
+      allowNull: false,
+      field: "tipoServicio"
+    },
+    monto: { 
+      type: DataTypes.DECIMAL(14, 2), 
+      allowNull: false,
+      field: "monto"
+    },
+    fechaVencimiento: { 
+      type: DataTypes.DATEONLY, 
+      allowNull: false,
+      field: "fechaVencimiento"
+    },
+    pagada: { 
+      type: DataTypes.BOOLEAN, 
+      defaultValue: false,
+      field: "pagada"
+    },
+    fechaPago: { 
+      type: DataTypes.DATEONLY, 
+      allowNull: true,
+      field: "fechaPago"
+    },
+    createdAt: { type: DataTypes.DATE, allowNull: false, field: "created_at" },
+    updatedAt: { type: DataTypes.DATE, allowNull: false, field: "updated_at" },
   },
   {
     sequelize,
     tableName: "Boleta",
     timestamps: true,
+    underscored: true,
   },
 );
 
