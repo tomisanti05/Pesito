@@ -1,3 +1,4 @@
+import { Decimal } from 'decimal.js';
 import { Transaction } from '../models/transaction.js';
 import { aplicarMovimiento } from './billeteraService.js';
 import sequelize from '../../config/database.js';
@@ -8,6 +9,15 @@ interface RegistrarTransaccionDTO {
   tipo: 'ingreso' | 'egreso';
   categoria: string;
   fecha: string;
+  descripcion?: string;
+}
+
+interface EditarTransaccionDTO {
+  idBilletera?: number;
+  monto?: string;
+  tipo?: 'ingreso' | 'egreso';
+  categoria?: string;
+  fecha?: string;
   descripcion?: string;
 }
 
@@ -60,6 +70,11 @@ function validarDatosMovimiento(dto: RegistrarTransaccionDTO) {
   }
 }
 
+function efectoFirmado(tipo: string, monto: string): Decimal {
+  const valor = new Decimal(monto);
+  return tipo === 'ingreso' ? valor : valor.negated();
+}
+
 export async function registerTransaction(dto: RegistrarTransaccionDTO) {
   validarDatosMovimiento(dto);
 
@@ -93,4 +108,60 @@ export async function getTransaction(id: number) {
     throw errorHttp('Movimiento no encontrado', 404);
   }
   return transaccion;
+}
+
+export async function editTransaction(id: number, dto: EditarTransaccionDTO) {
+  if (dto.idBilletera !== undefined) {
+    throw errorHttp('No se permite cambiar la billetera de una transaccion', 400);
+  }
+
+  return await sequelize.transaction(async (t) => {
+    const transaccion = await Transaction.findByPk(id, {
+      transaction: t,
+      lock: t.LOCK.UPDATE,
+    });
+    if (!transaccion) {
+      throw errorHttp('Movimiento no encontrado', 404);
+    }
+
+    const datos = {
+      idBilletera: transaccion.idBilletera,
+      monto: dto.monto !== undefined ? String(dto.monto) : transaccion.monto,
+      tipo: dto.tipo ?? transaccion.tipo,
+      categoria: dto.categoria ?? transaccion.categoria,
+      fecha: dto.fecha ?? transaccion.fecha,
+      descripcion: dto.descripcion !== undefined ? dto.descripcion : transaccion.descripcion,
+    };
+    validarDatosMovimiento(datos);
+
+    const diferencia = efectoFirmado(datos.tipo, datos.monto).minus(
+      efectoFirmado(transaccion.tipo, transaccion.monto)
+    );
+
+    if (diferencia.gt(0)) {
+      await aplicarMovimiento(transaccion.idBilletera, 'ingreso', diferencia.toFixed(2), t);
+    } else if (diferencia.lt(0)) {
+      await aplicarMovimiento(transaccion.idBilletera, 'egreso', diferencia.abs().toFixed(2), t);
+    }
+
+    return await transaccion.update(datos, { transaction: t });
+  });
+}
+
+export async function deleteTransaction(id: number) {
+  return await sequelize.transaction(async (t) => {
+    const transaccion = await Transaction.findByPk(id, {
+      transaction: t,
+      lock: t.LOCK.UPDATE,
+    });
+    if (!transaccion) {
+      throw errorHttp('Movimiento no encontrado', 404);
+    }
+
+    const tipoInverso = transaccion.tipo === 'ingreso' ? 'egreso' : 'ingreso';
+    await aplicarMovimiento(transaccion.idBilletera, tipoInverso, transaccion.monto, t);
+    await transaccion.destroy({ transaction: t });
+
+    return transaccion;
+  });
 }
