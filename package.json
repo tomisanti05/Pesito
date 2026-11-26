@@ -1,6 +1,7 @@
 {
   "name": "sistema-gestion-finanzas-root",
   "private": true,
+  "type": "module",
   "packageManager": "pnpm@12.18.0",
   "engines": {
     "node": ">=24"
