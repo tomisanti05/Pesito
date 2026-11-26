@@ -1,5 +1,6 @@
 import path from "node:path";
 import dotenv from "dotenv";
+import pg from "pg";
 import { Sequelize } from "sequelize";
 
 dotenv.config({
@@ -14,6 +15,7 @@ const sequelize = new Sequelize({
   username: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   dialect: "postgres",
+  dialectModule: pg,
   logging: false,
   define: { underscored: true },
   pool: { max: 3, min: 0, idle: 10000 },
