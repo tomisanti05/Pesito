@@ -67,6 +67,8 @@ function Transacciones() {
   }, []);
 
   useEffect(() => {
+    // El estado se actualiza después de los await, no de forma sincrónica.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void cargar();
   }, [cargar]);
 
