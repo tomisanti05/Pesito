@@ -12,6 +12,10 @@ const nombreBoleta = (tipo: string) => {
   return servicio ? 'Boleta de ' + servicio.nombre.toLowerCase() : 'Boleta';
 };
 
+function mensajeDeError(error: unknown): string {
+  return error instanceof Error ? error.message : 'Ocurrio un error inesperado';
+}
+
 function Facturacion() {
   const [boletas, setBoletas] = useState<Boleta[]>([]);
   const [tipo, setTipo] = useState<TipoServicio>('luz');
@@ -26,14 +30,16 @@ function Facturacion() {
       const data = await apiGet<Boleta[]>('/boletas');
       setBoletas(data);
       setError(null);
-    } catch (err: any) {
-      setError(err.message || 'Error al cargar boletas');
+    } catch (err) {
+      setError(mensajeDeError(err) || 'Error al cargar boletas');
     } finally {
       setCargando(false);
     }
   };
 
   useEffect(() => {
+    // El estado se actualiza después de los await, no de forma sincrónica.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void cargarBoletas();
   }, []);
 
@@ -41,8 +47,8 @@ function Facturacion() {
     try {
       await apiPatch(`/boletas/${id}`, { pagada: true, fechaPago: fechaDeHoy() });
       await cargarBoletas();
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err) {
+      alert(mensajeDeError(err));
     }
   };
 
@@ -51,8 +57,8 @@ function Facturacion() {
     try {
       await apiDelete(`/boletas/${id}`);
       await cargarBoletas();
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err) {
+      alert(mensajeDeError(err));
     }
   };
 
@@ -71,8 +77,8 @@ function Facturacion() {
       setMonto('');
       setFechaVencimiento('');
       await cargarBoletas();
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err) {
+      alert(mensajeDeError(err));
     }
   };
 
