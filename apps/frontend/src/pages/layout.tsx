@@ -7,6 +7,7 @@ export default function Layout() {
         { path: "/inicio", name: "Inicio"},
         { path: "/midinero", name: "Mi dinero"},
         { path: "/transacciones", name: "Transacciones"},
+        { path: "/calendario", name: "Calendario"},
         { path: "/facturacion", name: "Facturacion"},
         { path: "/tarjetas", name: "Tarjetas"},
         { path: "/subscripciones", name: "Subscripciones"},

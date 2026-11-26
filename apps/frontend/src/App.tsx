@@ -6,6 +6,7 @@ import Tarjetas from './pages/tarjetas.tsx'
 import Inicio from './pages/inicio.tsx';
 import MiDinero from './pages/midinero.tsx';
 import Transacciones from './pages/transacciones.tsx';
+import Calendario from './pages/calendario.tsx';
 import Subscripciones from './pages/subscripciones.tsx'
 import './App.css'
 
@@ -21,6 +22,7 @@ function App() {
           <Route path="/inicio" element={<Inicio />} />
           <Route path="/midinero" element={<MiDinero />} />
           <Route path="/transacciones" element={<Transacciones />} />
+          <Route path="/calendario" element={<Calendario />} />
           <Route path="/facturacion" element={<Facturacion />} />
           <Route path="/tarjetas" element={<Tarjetas />} />
           <Route path="/subscripciones" element={<Subscripciones />} />
