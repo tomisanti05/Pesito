@@ -1,6 +1,5 @@
 .account-page {
   width: 100%;
-  max-width: 900px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -304,7 +303,7 @@
   margin-top: 20px;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 1200px) {
   .account-grid {
     grid-template-columns: 1fr;
   }

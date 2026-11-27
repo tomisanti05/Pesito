@@ -1,14 +1,14 @@
-# Sistema de Gestion de Finanzas
+# Pesito — Sistema de Gestión de Finanzas
 
-Aplicacion web para el control de ingresos, gastos, billeteras y presupuestos.
+Aplicación web para controlar ingresos, gastos, billeteras, tarjetas, suscripciones y boletas. Es un monorepo con un backend Express 5 + TypeScript y un frontend React 19 + Vite, desplegado como un único proyecto en Vercel.
 
-Monorepo con un backend (API REST) y un frontend (SPA), desplegado como un unico
-proyecto en Vercel.
+El backend expone una API REST sobre PostgreSQL y el frontend la consume. El frontend usa un usuario de demostración (`ID_USUARIO = 1`).
 
-> Estado actual: el backend expone una API REST funcional contra PostgreSQL con
-> **autenticacion JWT** (registro, login, recuperacion y cambio de contrasena). Todas
-> las rutas de recursos estan protegidas y con ownership por usuario. El frontend
-> consume la API real con el token guardado en `localStorage`.
+Documentación específica:
+
+- [Arquitectura](docs/arquitectura.md)
+- [API](docs/api.md)
+- [Decisiones de diseño](docs/decisiones-diseño.md)
 
 ## Autores
 
@@ -16,331 +16,243 @@ proyecto en Vercel.
 - Ian Manfredi
 - Santiago De Dios
 
-## Tecnologias
+## Stack
 
-| Capa          | Tecnologia                                  |
-| ------------- | ------------------------------------------- |
-| Runtime       | Node.js 24+                                 |
-| Gestor        | pnpm 12.3.4 (via corepack)                  |
-| Backend       | Express 5 + TypeScript                      |
-| Base de datos | PostgreSQL + Sequelize 6 (ORM)              |
-| Calculos      | decimal.js (montos monetarios)              |
-| Frontend      | React 19 + Vite 8 + TypeScript              |
-| Ruteo         | react-router-dom 7                          |
-| Deploy        | Vercel (services + rewrites)                |
+| Capa | Tecnología |
+| --- | --- |
+| Runtime | Node.js 24+ |
+| Gestor de paquetes | pnpm 12.18.0 (vía corepack) |
+| Backend | Express 5 + TypeScript (ESM) |
+| Base de datos | PostgreSQL + Sequelize 6 |
+| Cálculos monetarios | decimal.js |
+| Frontend | React 19 + Vite 8 + TypeScript |
+| Ruteo del frontend | react-router-dom 7 |
+| Pruebas | Vitest 5 |
+| Deploy | Vercel (services + rewrites) |
 
 ## Estructura del monorepo
 
 ```
-sis-ges-fin/
+.
 ├── API/
-│   └── [...path].ts          # Entrypoint serverless de Vercel (reexporta el app)
+│   └── [...path].ts          # entrada serverless de Vercel
 ├── apps/
-│   ├── backend/
-│   │   └── src/
-│   │       ├── app.ts             # Configuracion de Express y montaje de rutas
-│   │       ├── index.ts           # Arranque del servidor
-│   │       ├── config/
-│   │       │   └── database.ts    # Conexion Sequelize
-│   │       └── modules/
-│   │           ├── models/        # User, Billetera, Transaction
-│   │           ├── controllers/   # Manejo de request/response
-│   │           ├── services/      # Logica de negocio
-│   │           └── routes/        # Definicion de endpoints
-│   └── frontend/
+│   ├── backend/              # API REST
+│   │   ├── src/
+│   │   │   ├── app.ts        # Express y montaje de rutas
+│   │   │   ├── index.ts      # arranque del servidor
+│   │   │   ├── config/
+│   │   │   │   └── database.ts
+│   │   │   ├── modules/
+│   │   │   │   ├── models/       # entidades de Sequelize
+│   │   │   │   ├── controllers/  # request y response
+│   │   │   │   ├── services/     # lógica de negocio
+│   │   │   │   └── routes/       # endpoints
+│   │   │   └── utils/
+│   │   │       └── pagination.ts
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   ├── db/                   # scripts SQL
+│   │   ├── schema.sql        # crea las tablas
+│   │   └── seeds.sql         # datos de prueba
+│   └── frontend/             # SPA React
+│       ├── README.md         # guía del paquete
+│       ├── public/           # imágenes y favicon
 │       └── src/
-│           ├── App.tsx            # Definicion de rutas
-│           ├── pages/             # Vistas (inicio, midinero, facturacion, ...)
-│           ├── services/api.ts    # Cliente HTTP (pendiente de implementar)
-│           ├── data/  types/  utils/
-│           └── main.tsx
+│           ├── App.tsx       # rutas de la SPA
+│           ├── pages/        # Inicio, Mi dinero, etc.
+│           ├── components/   # GraficoTorta
+│           ├── services/     # cliente HTTP
+│           ├── types/
+│           ├── utils/
+│           └── data/
+├── docs/                     # arquitectura, API y decisiones
+├── .github/workflows/ci.yml  # lint + typecheck + tests
+├── package.json              # scripts del monorepo
 ├── pnpm-workspace.yaml
 ├── vercel.json
 └── .env.example
 ```
 
-## Requisitos previos
+## Puesta en marcha
 
-- Node.js 24 o superior
-- pnpm (se habilita con corepack)
-- Una instancia de PostgreSQL en ejecucion
+### Requisitos
 
-## Clonar e instalar
+- Node.js 24 o superior (`node -v`).
+- pnpm 12.18.0; se habilita con `corepack enable`.
+- Una base PostgreSQL. El proyecto está pensado para Supabase y la conexión exige SSL.
+
+Si usás Supabase no hace falta instalar PostgreSQL en tu máquina.
+
+### 1. Clonar e instalar
 
 ```bash
-# 1. Clonar el repositorio
 git clone https://github.com/tomisanti05/Pesito.git
 cd Pesito
-
-# 2. Habilitar pnpm via corepack
 corepack enable
-
-# 3. Instalar todas las dependencias del workspace
 pnpm install
+```
 
-# 4. Crear el archivo de entorno a partir del ejemplo
+### 2. Configurar el entorno
+
+```bash
 cp .env.example .env
 ```
 
-Luego edita `.env` con los datos reales de tu base de datos.
+Completá `.env` con el host, el puerto, el nombre de la base, el usuario y la contraseña. El archivo va en la raíz del repositorio; el backend lo carga desde ahí.
+
+### 3. Crear la base
+
+En Supabase, creá un proyecto o usá uno existente y abrí el SQL Editor. Ejecutá `apps/db/schema.sql`. Si querés datos de ejemplo, ejecutá también `apps/db/seeds.sql`. Si usás `psql`, podés correr los mismos archivos con los datos de conexión que pusiste en `.env`.
+
+`seeds.sql` crea el usuario `santiago@test.com`, tres billeteras, una tarjeta, tres suscripciones, tres boletas y cinco movimientos.
+
+### 4. Levantar la aplicación
+
+```bash
+pnpm dev
+```
+
+Esto inicia el backend en `http://localhost:3000` y el frontend en `http://localhost:5173` (el puerto por defecto de Vite). Abrí `http://localhost:5173` en el navegador para usar la app. Para comprobar que el backend responde, abrí `http://localhost:3000`: tiene que devolver `servidor corriendo`.
+
+El frontend proxya `/api` a `http://localhost:3000`. Si cambiás `PORT`, actualizá también el proxy en `vite.config.ts`.
+
+Para verificar que todo compila y pasa las pruebas:
+
+```bash
+pnpm check
+```
 
 ## Variables de entorno
 
-El backend carga el `.env` ubicado en la **raiz** del repositorio
-(`apps/backend/src/config/database.ts` resuelve la ruta hacia `../../../.env`).
+El backend carga el `.env` de la raíz del repositorio. La conexión usa SSL y un pool de 3 conexiones.
 
-| Variable      | Descripcion                          | Ejemplo        |
-| ------------- | ------------------------------------ | -------------- |
-| `PORT`        | Puerto HTTP del backend             | `3000`         |
-| `NODE_ENV`    | Entorno de ejecucion                 | `development`  |
-| `DB_HOST`     | Host de PostgreSQL                   | `localhost`    |
-| `DB_PORT`     | Puerto de PostgreSQL                 | `5432`         |
-| `DB_NAME`     | Nombre de la base de datos           | `finanzas_db`  |
-| `DB_USER`     | Usuario de PostgreSQL                | `postgres`     |
-| `DB_PASSWORD` | Contrasena de PostgreSQL             | *(vacio)*      |
-| `JWT_SECRET`  | Secreto para firmar tokens JWT       | *(aleatorio)*  |
-| `JWT_EXPIRES_IN` | Vigencia del token JWT            | `7d`           |
-| `RESET_TOKEN_TTL_MIN` | Vigencia del enlace de recuperacion (min) | `30` |
-| `FRONTEND_URL` | URL del frontend (para enlaces de reset) | `http://localhost:5173` |
+| Variable | Descripción | Ejemplo |
+| --- | --- | --- |
+| `PORT` | Puerto HTTP del backend | `3000` |
+| `NODE_ENV` | Entorno de ejecución | `development` |
+| `DB_HOST` | Host de PostgreSQL | `aws-0-<region>.pooler.supabase.com` |
+| `DB_PORT` | Puerto de PostgreSQL | `5432` |
+| `DB_NAME` | Nombre de la base | `postgres` |
+| `DB_USER` | Usuario de PostgreSQL | `postgres.<project-ref>` |
+| `DB_PASSWORD` | Contraseña de PostgreSQL | `tu-password-de-supabase` |
 
-> La conexion usa SSL con `rejectUnauthorized: false`. Para entornos de produccion
-> (por ejemplo un proveedor gestionado) esto es correcto; tenlo en cuenta si
-> trabajas con un PostgreSQL local sin SSL.
+## Scripts
 
-## Uso y scripts
+Desde la raíz:
 
-Scripts de la **raiz** (ejecutan en todo el workspace):
+| Comando | Descripción |
+| --- | --- |
+| `pnpm dev` | Levanta backend y frontend en paralelo |
+| `pnpm build` | Compila ambos paquetes |
+| `pnpm lint` | ESLint en los paquetes |
+| `pnpm typecheck` | Chequeo de tipos |
+| `pnpm test` | Vitest en backend y frontend |
+| `pnpm check` | `lint` + `typecheck` + `test` |
+| `pnpm deploy` | Despliega en Vercel (`vercel`) |
 
-| Comando        | Descripcion                                            |
-| -------------- | ------------------------------------------------------ |
-| `pnpm dev`     | Levanta backend y frontend en paralelo                 |
-| `pnpm build`   | Compila ambos paquetes                                 |
-| `pnpm deploy`  | Despliega en Vercel (`vercel`)                         |
-
-Scripts del **backend** (`apps/backend`):
-
-| Comando        | Descripcion                                  |
-| -------------- | -------------------------------------------- |
-| `pnpm dev`     | Desarrollo con recarga (`tsx watch`)         |
-| `pnpm build`   | Compila TypeScript a `dist/`                 |
-| `pnpm start`   | Ejecuta el build (`node dist/index.js`)      |
-
-Scripts del **frontend** (`apps/frontend`):
-
-| Comando          | Descripcion                            |
-| ---------------- | -------------------------------------- |
-| `pnpm dev`       | Servidor de desarrollo de Vite         |
-| `pnpm build`     | Type-check + build de produccion       |
-| `pnpm lint`      | Analisis estatico con ESLint           |
-| `pnpm preview`   | Previsualiza el build de produccion    |
+Cada aplicación tiene `dev`, `build`, `lint`, `typecheck` y `test`. El backend agrega `start` y el frontend `preview`.
 
 ## API REST
 
-Todas las rutas se montan bajo `/api` y comparten conexion a la base de datos.
-El formato de error es `{ "mensaje": "..." }` (usuarios) o `{ "error": "..." }`
-(billeteras y transacciones).
+| Prefijo | Router |
+| --- | --- |
+| `/api/users` | `userRoutes` |
+| `/api/transactions` | `transactionRoutes` |
+| `/api/v1/billeteras` y `/api/billetera` | `billeteraRoutes` |
+| `/api/v1/suscripciones` y `/api/suscripciones` | `suscripcionRoutes` |
+| `/api/v1/boletas` | `boletaRoutes` |
+| `/api/v1/tarjetas` | `tarjetaRoutes` |
 
-### Autenticacion (`/api/auth`)
+Los módulos de usuarios, billeteras, boletas, suscripciones y tarjetas responden `{ mensaje }`; transacciones usa `{ error }`. El detalle de cada endpoint está en [docs/api.md](docs/api.md).
 
-| Metodo | Ruta                        | Descripcion                                        |
-| ------ | --------------------------- | -------------------------------------------------- |
-| POST   | `/api/auth/register`        | Registrar usuario (devuelve token + usuario)       |
-| POST   | `/api/auth/login`           | Iniciar sesion (devuelve token + usuario)          |
-| POST   | `/api/auth/forgot-password` | Enviar enlace de recuperacion                      |
-| POST   | `/api/auth/reset-password`  | Restablecer contrasena con el token del enlace     |
-| GET    | `/api/auth/me`              | Perfil del usuario autenticado **[auth]**          |
-| POST   | `/api/auth/change-password` | Cambiar contrasena (con la actual) **[auth]**     |
+Reglas generales:
 
-- Las contrasenas se hashean con **bcryptjs** (nunca se guardan en claro).
-- El token JWT se envia como `Authorization: Bearer <token>`.
-- El token de recuperacion se guarda en la base como **hash SHA-256**; el crudo
-  viaja solo en el enlace `/reset-password?token=...`. En desarrollo el backend
-  ademas devuelve/imprime el enlace en la respuesta del `forgot-password`.
-- Los recursos del usuario demo (`santiago@test.com`) tienen la contrasena `Demo1234`.
-
-**Proteccion de rutas**: todos los endpoints de recursos (`/api/users`,
-`/api/transactions`, `/api/v1/billeteras`, `/api/v1/suscripciones`,
-`/api/v1/boletas`, `/api/v1/tarjetas`) exigen token. Un usuario normal solo ve y
-modifica **sus propios** registros; el rol `admin` puede administrar todo.
-Listar y crear usuarios queda restringido a admins (el registro publico vive en
-`/api/auth/register`).
-
-Ejemplo de login:
-
-```bash
-curl -X POST http://localhost:3000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "santiago@test.com", "password": "Demo1234"}'
-```
-
-### Usuarios (`/api/users`) **[admin]**
-
-| Metodo | Ruta            | Descripcion                                      |
-| ------ | --------------- | ------------------------------------------------ |
-| POST   | `/api/users`    | Crear usuario                                    |
-| GET    | `/api/users`    | Listar usuarios paginados                        |
-| GET    | `/api/users/:id`| Obtener usuario por ID                           |
-| PUT    | `/api/users/:id`| Editar usuario                                   |
-| PATCH  | `/api/users/:id`| Editar usuario parcialmente                      |
-| DELETE | `/api/users/:id`| Dar de baja logica (`activo = false`)            |
-
-El listado acepta `page`, `limit`, `search`, `rol`, `activo`, `sortBy` y `order`.
-Devuelve `{ "data": [], "total": 0, "page": 1, "limit": 10 }`.
-
-Ejemplo de creacion:
-
-```bash
-curl -X POST http://localhost:3000/api/users \
-  -H "Content-Type: application/json" \
-  -d '{"nombre": "Ana Perez", "email": "ana@example.com", "telefono": "11 5555 1234"}'
-```
-
-Reglas de validacion: `nombre` y `email` obligatorios; `nombre` solo letras y espacios
-(max 100); `email` con formato valido (max 150) y unico (409 si ya existe); `telefono`
-opcional (max 30). En la edicion se pueden cambiar `nombre`, `email`, `telefono`, `rol`
-y `activo`; un body vacio devuelve 400.
-
-### Billeteras (`/api/billetera`)
-
-| Metodo | Ruta                 | Descripcion                                  |
-| ------ | -------------------- | -------------------------------------------- |
-| POST   | `/api/billetera`     | Crear billetera (saldo inicial `0.00`)       |
-| GET    | `/api/billetera/:id` | Obtener detalle y saldo actual               |
-| PUT    | `/api/billetera/:id` | Editar solo `nombre` y `tipo`                |
-
-Ejemplo de creacion:
-
-```bash
-curl -X POST http://localhost:3000/api/billetera \
-  -H "Content-Type: application/json" \
-  -d '{"idUsuario": 1, "nombre": "Efectivo", "tipo": "cash"}'
-```
-
-El saldo y el propietario no pueden modificarse mediante `PUT`. El usuario debe existir
-y estar activo.
-
-### Transacciones (`/api/transactions`)
-
-| Metodo | Ruta                     | Descripcion                                  |
-| ------ | ------------------------ | -------------------------------------------- |
-| POST   | `/api/transactions`      | Registrar transaccion (actualiza el saldo)   |
-| GET    | `/api/transactions`      | Listar (filtro opcional `?idBilletera=`)     |
-| GET    | `/api/transactions/:id`  | Obtener transaccion por ID                   |
-
-Ejemplo de registro:
-
-```bash
-curl -X POST http://localhost:3000/api/transactions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "idBilletera": 1,
-    "monto": "1500.00",
-    "tipo": "egreso",
-    "categoria": "supermercado",
-    "fecha": "2026-01-15",
-    "descripcion": "Compra semanal"
-  }'
-```
-
-Reglas: `monto` positivo con hasta 2 decimales; `tipo` `ingreso` o `egreso`;
-`fecha` en formato `YYYY-MM-DD`. Un `egreso` mayor al saldo disponible responde `409`
-(fondos insuficientes).
+- En las respuestas, los montos vuelven como string (`DECIMAL(14,2)`); en los requests se aceptan números o strings.
+- Las fechas viajan como `YYYY-MM-DD`.
+- Los listados paginados devuelven `{ data, total, page, limit }` y aceptan `page`, `limit` (máximo 100), `search`, `sortBy` y `order`.
 
 ## Modelo de datos
 
-| Modelo        | Tabla          | Campos principales                                                              |
-| ------------- | -------------- | ------------------------------------------------------------------------------- |
-| `User`        | `users`        | `id`, `nombre`, `email` (unico), `rol` (`usuario`/`admin`), `activo`, timestamps |
-| `Billetera`   | `wallets`      | `idBilletera`, `idUsuario`, `nombre`, `saldo` (`DECIMAL(14,2)`), `tipo`         |
-| `Transaction` | `Transacciones`| `idTransaccion`, `idBilletera`, `monto`, `tipo`, `categoria`, `fecha`, `descripcion` |
+| Modelo | Tabla | Campos principales |
+| --- | --- | --- |
+| `User` | `Usuarios` | `id`, `nombre`, `email` (único), `telefono`, `rol` (`usuario`/`admin`), `activo`, timestamps |
+| `Billetera` | `Billetera` | `idBilletera` (columna `id`), `idUsuario`, `nombre`, `saldo` (`DECIMAL(14,2)`), `tipo` |
+| `Transaction` | `Transaccion` | `idTransaccion` (columna `id`), `idBilletera`, `monto`, `tipo` (`ingreso`/`egreso`), `categoria`, `fecha`, `descripcion` |
+| `Tarjeta` | `Tarjeta` | `id`, `idUsuario`, `tipo` (`visa`/`mastercard`/`amex`/`otra`), `ultimosCuatro`, `titular`, `vencimiento` (`MM/YY`), `activa` |
+| `Suscripcion` | `Suscripcion` | `idSuscripcion` (columna `id`), `idUsuario`, `idTarjeta`, `proveedor`, `plan`, `monto`, `diaCobro`, `activa` |
+| `Boleta` | `Boleta` | `idBoleta` (columna `id`), `idUsuario`, `tipoServicio`, `monto`, `fechaVencimiento`, `pagada`, `fechaPago` |
 
-Relaciones: una `Billetera` pertenece a un `User` (`idUsuario`) y tiene muchas
-`Transaction` (`idBilletera`).
+Relaciones en la base:
 
-### Arquitectura del backend
+- `Billetera.idUsuario` → `Usuarios.id` (`ON DELETE CASCADE`).
+- `Transaccion.idBilletera` → `Billetera.id` (`ON DELETE CASCADE`).
+- `Tarjeta.idUsuario` → `Usuarios.id` (`ON DELETE CASCADE`).
+- `Suscripcion.idUsuario` → `Usuarios.id` (`ON DELETE CASCADE`); `Suscripcion.idTarjeta` → `Tarjeta.id` (`ON DELETE SET NULL`).
+- `Boleta.idUsuario` → `Usuarios.id` (`ON DELETE CASCADE`).
 
-El flujo de una peticion es **routes → controllers → services → models**:
+El diagrama E-R del esquema está en [docs/Diagrama E-R.png](docs/Diagrama%20E-R.png).
+
+Los modelos usan camelCase para las columnas y `underscored: true` para los timestamps (`created_at`, `updated_at`).
+
+## Arquitectura del backend
+
+El flujo de una petición es **routes → controllers → services → models**:
 
 - **routes**: definen los endpoints y delegan en el controller.
 - **controllers**: extraen datos del request y traducen errores a respuestas HTTP.
-- **services**: contienen la logica de negocio y las validaciones.
+- **services**: contienen la lógica de negocio y las validaciones.
 - **models**: definen las entidades de Sequelize.
 
-Detalles relevantes:
+Puntos concretos:
 
-- Los saldos se calculan con `decimal.js` mediante el **patron Strategy**
-  (`ingresoStrategy` / `egresoStrategy`) en `apps/backend/src/modules/services/billeteraService.ts`.
-- Registrar una transaccion es **atomico**: `registerTransaction` abre una transaccion de
-  Sequelize, aplica el movimiento al saldo y crea el registro, todo con **bloqueo pesimista**
-  (`LOCK.UPDATE`) para evitar condiciones de carrera en egresos simultaneos.
-- `saldo` y `monto` se manejan como `string` en la capa de aplicacion para no perder
-  precision en operaciones con decimales.
+- La conexión es una instancia compartida de Sequelize por proceso. `connectDatabase()` cachea la promesa de `authenticate()` y se invoca desde `index.ts` y desde el middleware `conectarBase`.
+- Los saldos se calculan con `decimal.js` mediante el patrón **Strategy** (`ingresoStrategy` / `egresoStrategy`) en `billeteraService.ts`.
+- Registrar una transacción es **atómico**: `registerTransaction` abre una transacción de Sequelize, aplica el movimiento con bloqueo pesimista (`LOCK.UPDATE`) y crea el registro con la misma transacción.
+- Editar y eliminar siguen el mismo esquema y ajustan el saldo por la diferencia o por el movimiento inverso.
+
+El detalle de capas, flujos y esquema está en [docs/arquitectura.md](docs/arquitectura.md).
 
 ## Frontend
 
 SPA con React Router. Rutas definidas en `apps/frontend/src/App.tsx`:
 
-| Ruta                | Pagina          | Acceso            |
-| ------------------- | --------------- | ----------------- |
-| `/`                 | redirige a `/inicio` | -             |
-| `/login`            | Login           | publico          |
-| `/register`         | Registro        | publico          |
-| `/forgot-password`  | Recuperar contrasena | publico     |
-| `/reset-password`   | Nueva contrasena | publico          |
-| `/inicio`           | Inicio          | requiere sesion  |
-| `/midinero`         | Mi dinero       | requiere sesion  |
-| `/transacciones`    | Transacciones   | requiere sesion  |
-| `/facturacion`      | Facturacion     | requiere sesion  |
-| `/tarjetas`         | Tarjetas        | requiere sesion  |
-| `/subscripciones`   | Subscripciones  | requiere sesion  |
-| `/miCuenta`         | Mi cuenta       | requiere sesion  |
-| `*`                 | 404             | -                 |
+| Ruta | Página |
+| --- | --- |
+| `/` | Redirige a `/inicio` |
+| `/inicio` | Inicio |
+| `/midinero` | Mi dinero |
+| `/transacciones` | Transacciones |
+| `/facturacion` | Facturación |
+| `/tarjetas` | Tarjetas |
+| `/subscripciones` | Suscripciones |
+| `/miCuenta` | Mi cuenta |
+| `*` | 404 |
 
-El token JWT se guarda en `localStorage` y el cliente HTTP
-(`apps/frontend/src/services/api.ts`) lo agrega automaticamente como header
-`Authorization: Bearer <token>`. Si la API responde 401, el token se descarta.
-`AuthProvider` (`apps/frontend/src/context/AuthContext.tsx`) expone el usuario
-autenticado via `useAuth()`, y las rutas privadas estan envueltas en
-`RutaProtegida` (redirige a `/login` si no hay sesion). En "Mi cuenta" se puede
-cambiar la contrasena iniciando sesion con la actual.
+Todas las páginas consumen la API a través de `apps/frontend/src/services/api.ts`. El cliente centraliza las llamadas y el manejo de errores.
 
-## Migraciones
+El detalle del paquete (scripts, estructura y cómo levantarlo solo) está en [apps/frontend/README.md](apps/frontend/README.md).
 
-El esquema base vive en `apps/db/schema.sql` y los datos demo en `apps/db/seeds.sql`.
-Las migraciones incrementales estan en `apps/db/migrations/` y se aplican a mano en el
-SQL Editor (por ejemplo, Supabase):
+## Pruebas
 
-- `001_auth.sql`: agrega `password_hash` a `Usuarios` y crea la tabla
-  `PasswordResetToken`. **Requerida para usar el login.**
+Hay 31 pruebas unitarias con Vitest:
+
+- Backend: `userServices.test.ts`, `billeteraService.test.ts` y `tarjetaService.test.ts` (22 tests).
+- Frontend: `resumenGastos.test.ts` (9 tests).
+
+`pnpm check` ejecuta lint, typecheck y tests. El CI de GitHub Actions corre ese comando en cada push y pull request.
 
 ## Deploy en Vercel
 
-`vercel.json` define dos **services** que se despliegan juntos desde el mismo proyecto:
+`vercel.json` define dos services que se despliegan juntos:
 
-- `backend` (root `apps/backend`, framework `express`)
-- `frontend` (root `apps/frontend`, framework `vite`)
+- `backend` (root `apps/backend`, framework `express`, entrypoint `src/app.ts`).
+- `frontend` (root `apps/frontend`, framework `vite`).
 
-Y enruta las peticiones con `rewrites`:
-
-- `/api/(.*)` → service `backend`
-- `/(.*)` → service `frontend`
-
-El entrypoint `API/[...path].ts` reexporta el app de Express para que Vercel lo ejecute
-como funcion serverless.
+Los rewrites mandan `/api/(.*)` al backend y `/(.*)` al frontend. El entrypoint `API/[...path].ts` reexporta el app de Express para que Vercel lo ejecute como función serverless.
 
 ```bash
 pnpm deploy
 ```
 
-## Pendientes / Roadmap
-
-- [x] Conectar el frontend a la API real (`services/api.ts`).
-- [x] Autenticacion y autorizacion (JWT + rol `admin` con uso real).
-- [ ] Unificar los nombres de tabla: `Transaction` referencia `Billeteras` mientras que
-      `Billetera` define la tabla `wallets`.
-- [ ] Enviar el email de recuperacion por un servicio real (hoy solo se registra el
-      enlace en desarrollo).
-- [ ] Tests automatizados del frontend (el backend ya tiene Vitest configurado).
-- [ ] Revisar `.gitignore`: `.env*` tambien ignora `.env.example`.
-
-
+Las variables de entorno de la base se configuran en el proyecto de Vercel. El `.env` no se versiona.

@@ -10,9 +10,12 @@
   --color-text-on-primary: #ffffff;
 
   /* Neutrales (Superficie y fondos) */
-  --color-bg-page: #f6f7fb;
+  --color-bg-page: #eef1f7;
   --color-bg-surface: #ffffff;
   --color-bg-hover: #f3f4f6;
+
+  /* Layout */
+  --layout-content-max: 1600px;
 
   /* Neutrales (Bordes) */
   --color-border-subtle: #f3f4f6;
