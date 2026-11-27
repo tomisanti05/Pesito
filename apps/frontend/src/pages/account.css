@@ -1,6 +1,5 @@
 .account-page {
   width: 100%;
-  max-width: 900px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -24,6 +23,10 @@
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   gap: 24px;
   align-items: start;
+}
+
+.account-password {
+  grid-column: 1 / -1;
 }
 
 .account-card {
@@ -300,7 +303,7 @@
   margin-top: 20px;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 1200px) {
   .account-grid {
     grid-template-columns: 1fr;
   }

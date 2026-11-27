@@ -1,10 +1,9 @@
 .subscripciones-body{
-    max-width: 900px;
-    padding: 2rem;
     width: 100%;
 }
 .metricas{
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 1rem;
     margin-bottom: 2rem;
@@ -43,7 +42,7 @@
 }
 .subscripcion-card{
     display: grid;
-    grid-template-columns: 300px 1.8fr 1.5fr 100px 120px 100px;
+    grid-template-columns: 300px 1.8fr 1.5fr 100px 120px 170px;
     gap: 1rem;
     align-items: center;
     padding: 1.5rem;
@@ -202,6 +201,7 @@
 
 .subscripcion-acciones {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
 }
@@ -297,14 +297,26 @@
   margin-top: 20px;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 1500px) {
   .subscripcion-card {
-    grid-template-columns: 1fr;
-    gap: 0.6rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .subscripcion-card .proveedor,
+  .subscripcion-acciones {
+    grid-column: 1 / -1;
   }
 
   .subscripcion-acciones {
     justify-content: flex-start;
+  }
+}
+
+@media (max-width: 700px) {
+  .subscripcion-card {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
   }
 
   .subscripciones-header,
@@ -316,5 +328,9 @@
   .subscripciones-buscador input {
     width: 100%;
     max-width: none;
+  }
+
+  .paginacion {
+    flex-wrap: wrap;
   }
 }

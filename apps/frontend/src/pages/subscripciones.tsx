@@ -5,7 +5,6 @@ import {
   apiGet,
   apiPatch,
   apiPost,
-  ID_USUARIO,
 } from '../services/api';
 import type { ListaPaginada, Suscripcion } from '../types/finanzas';
 
@@ -96,7 +95,6 @@ export default function Subscripciones() {
 
   useEffect(() => {
     const temporizador = window.setTimeout(() => {
-      setCargando(true);
       setBusquedaAplicada(busqueda.trim());
       setPagina(1);
     }, 300);
@@ -104,13 +102,13 @@ export default function Subscripciones() {
   }, [busqueda]);
 
   const cargarSuscripciones = useCallback(async () => {
+    setCargando(true);
     try {
       const params = new URLSearchParams({
         page: String(pagina),
         limit: String(LIMITE),
         sortBy: 'proveedor',
         order: 'asc',
-        idUsuario: String(ID_USUARIO),
       });
       if (busquedaAplicada) params.set('search', busquedaAplicada);
 
@@ -118,7 +116,6 @@ export default function Subscripciones() {
         limit: '100',
         sortBy: 'proveedor',
         order: 'asc',
-        idUsuario: String(ID_USUARIO),
         activa: 'true',
       });
 
@@ -215,8 +212,8 @@ export default function Subscripciones() {
         setEditando(null);
         await recargar();
       } else {
+        // El propietario lo define el backend a partir del token.
         await apiPost<Suscripcion>('/suscripciones', {
-          idUsuario: ID_USUARIO,
           idTarjeta: null,
           ...datos,
         });

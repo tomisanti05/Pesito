@@ -1,4 +1,5 @@
 .pagina {
+  width: 100%;
   font-family: system-ui, -apple-system, sans-serif;
 }
 
@@ -142,6 +143,16 @@
   cursor: default;
 }
 
+.accionesItem {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.botonEliminar {
+  color: #b91c1c;
+}
+
 .formulario {
   display: flex;
   flex-direction: column;
@@ -217,4 +228,100 @@
   font-size: 14px;
   margin: 0;
   padding: 16px 0;
+}
+
+@media (max-width: 1500px) {
+  .item {
+    flex-wrap: wrap;
+  }
+
+  .info {
+    flex: 1 1 200px;
+  }
+
+  .monto {
+    min-width: 0;
+    text-align: left;
+  }
+
+  .estado {
+    min-width: 0;
+  }
+
+  .botonPagar {
+    min-width: 0;
+    flex: 1 1 auto;
+    padding: 10px 14px;
+  }
+}
+
+@media (max-width: 1300px) {
+  .principal {
+    grid-template-columns: 1fr;
+  }
+
+  .pestanas {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 720px) {
+  .item {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    align-items: center;
+  }
+
+  .icono {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .info {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .monto {
+    grid-column: 3;
+    grid-row: 1;
+    text-align: right;
+  }
+
+  .estado {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+  }
+
+  .accionesItem {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  .accionesItem .botonPagar {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .resumen {
+    grid-template-columns: 1fr;
+  }
+
+  .tarjetaResumen,
+  .tarjeta {
+    padding: 18px;
+  }
+
+  .pagina h1 {
+    font-size: 24px;
+    margin-bottom: 24px;
+  }
+
+  .pagina h2 {
+    font-size: 18px;
+  }
 }

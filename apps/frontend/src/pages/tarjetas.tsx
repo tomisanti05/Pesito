@@ -13,7 +13,6 @@ import {
   apiGet,
   apiPatch,
   apiPost,
-  ID_USUARIO,
 } from "../services/api";
 import type { ListaPaginada, Tarjeta, TipoTarjeta } from "../types/finanzas";
 
@@ -95,7 +94,8 @@ export default function Tarjetas() {
   const cargarTarjetas = useCallback(async () => {
     try {
       const lista = await apiGet<ListaPaginada<Tarjeta>>(
-        `/tarjetas?limit=100&sortBy=id&order=desc&idUsuario=${ID_USUARIO}`,
+        // El backend filtra por el usuario autenticado (token JWT).
+        `/tarjetas?limit=100&sortBy=id&order=desc`,
       );
       setTarjetas(lista.data);
       setIndice((actual) =>
@@ -204,10 +204,8 @@ export default function Tarjetas() {
       if (editando) {
         await apiPatch<Tarjeta>(`/tarjetas/${editando.id}`, datos);
       } else {
-        await apiPost<Tarjeta>("/tarjetas", {
-          idUsuario: ID_USUARIO,
-          ...datos,
-        });
+        // El propietario lo define el backend a partir del token.
+        await apiPost<Tarjeta>("/tarjetas", datos);
         setIndice(0);
       }
       setModalAbierto(false);

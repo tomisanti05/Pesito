@@ -134,20 +134,21 @@ function Facturacion() {
                 >
                   {boleta.pagada ? 'Pagada' : 'Pendiente'}
                 </span>
-                <button
-                  className={estilos.botonPagar}
-                  disabled={boleta.pagada}
-                  onClick={() => void marcarComoPagado(boleta.idBoleta)}
-                >
-                  Marcar pagado
-                </button>
-                <button
-                  className={estilos.botonPagar}
-                  style={{ color: 'red', borderColor: 'red', marginLeft: '8px' }}
-                  onClick={() => void eliminarBoleta(boleta.idBoleta)}
-                >
-                  Eliminar
-                </button>
+                <div className={estilos.accionesItem}>
+                  <button
+                    className={estilos.botonPagar}
+                    disabled={boleta.pagada}
+                    onClick={() => void marcarComoPagado(boleta.idBoleta)}
+                  >
+                    Marcar pagado
+                  </button>
+                  <button
+                    className={`${estilos.botonPagar} ${estilos.botonEliminar}`}
+                    onClick={() => void eliminarBoleta(boleta.idBoleta)}
+                  >
+                    Eliminar
+                  </button>
+                </div>
               </div>
             );
           })}

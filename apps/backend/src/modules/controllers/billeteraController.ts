@@ -17,6 +17,10 @@ function parsearId(req: Request, res: Response): number | null {
     return idBilletera;
 }
 
+function scopeUsuario(req: Request): number | undefined {
+    return req.usuario!.rol === "admin" ? undefined : req.usuario!.id;
+}
+
 // GET /api/v1/billeteras -> Listado paginado con búsqueda y orden
 export async function listarBilleteras(req: Request, res: Response): Promise<void> {
     try {
@@ -25,7 +29,8 @@ export async function listarBilleteras(req: Request, res: Response): Promise<voi
             billeteraService.CAMPOS_ORDEN_BILLETERA,
             "idBilletera",
         );
-        const resultado = await billeteraService.listarBilleteras(paginacion);
+        const idUsuario = req.usuario!.rol === "admin" ? undefined : req.usuario!.id;
+        const resultado = await billeteraService.listarBilleteras(paginacion, idUsuario);
         res.status(200).json(resultado);
     } catch (error: any) {
         responderError(res, error);
@@ -35,7 +40,13 @@ export async function listarBilleteras(req: Request, res: Response): Promise<voi
 // POST /api/v1/billeteras -> Crear billetera con saldo 0.00
 export async function crearBilletera(req: Request, res: Response): Promise<void> {
     try {
-        const { idUsuario, nombre, tipo } = req.body;
+        const { nombre, tipo } = req.body;
+        // El propietario sale del token, no del body. Un admin puede
+        // crear billeteras para otro usuario pasando idUsuario.
+        const idUsuario =
+            req.usuario!.rol === "admin" && req.body?.idUsuario
+                ? Number(req.body.idUsuario)
+                : req.usuario!.id;
         const nuevaBilletera = await billeteraService.CrearBilletera({ idUsuario, nombre, tipo });
         res.status(201).json(nuevaBilletera);
     } catch (error: any) {
@@ -49,7 +60,7 @@ export async function obtenerBilleteraPorId(req: Request, res: Response): Promis
         const idBilletera = parsearId(req, res);
         if (idBilletera === null) return;
 
-        const billetera = await billeteraService.obtenerBilleteraPorId(idBilletera);
+        const billetera = await billeteraService.obtenerBilleteraPorId(idBilletera, scopeUsuario(req));
         res.status(200).json(billetera);
     } catch (error: any) {
         responderError(res, error);
@@ -62,7 +73,7 @@ export async function editarBilletera(req: Request, res: Response): Promise<void
         const idBilletera = parsearId(req, res);
         if (idBilletera === null) return;
 
-        const billeteraActualizada = await billeteraService.editarBilletera(idBilletera, req.body);
+        const billeteraActualizada = await billeteraService.editarBilletera(idBilletera, req.body, scopeUsuario(req));
         res.status(200).json(billeteraActualizada);
     } catch (error: any) {
         responderError(res, error);
@@ -75,7 +86,7 @@ export async function eliminarBilletera(req: Request, res: Response): Promise<vo
         const idBilletera = parsearId(req, res);
         if (idBilletera === null) return;
 
-        const billeteraEliminada = await billeteraService.eliminarBilletera(idBilletera);
+        const billeteraEliminada = await billeteraService.eliminarBilletera(idBilletera, scopeUsuario(req));
         res.status(200).json({
             mensaje: "Billetera eliminada correctamente.",
             data: billeteraEliminada,
