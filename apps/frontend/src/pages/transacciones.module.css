@@ -1,8 +1,8 @@
 .pagina {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-width: 800px;
 }
 
 .cabecera {
@@ -166,4 +166,55 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+@media (max-width: 720px) {
+  .cabecera {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .buscador {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .fila {
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+
+  .detalle {
+    flex: 1 1 100%;
+  }
+
+  .acciones {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .paginacion {
+    flex-wrap: wrap;
+  }
+
+  .error {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .acciones {
+    flex-direction: column;
+  }
+
+  .acciones button {
+    width: 100%;
+  }
+
+  .paginacion {
+    gap: 8px;
+  }
 }

@@ -1,6 +1,5 @@
 .tarjetas-page {
   width: 100%;
-  max-width: 1040px;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -443,9 +442,15 @@
   margin-top: 20px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1200px) {
   .tarjetas-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1400px) {
+  .tarjetas-page .tarjeta-visual {
+    max-width: 500px;
   }
 }
 
