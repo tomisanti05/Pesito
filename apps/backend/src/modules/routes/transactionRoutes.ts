@@ -1,7 +1,11 @@
 import { Router } from 'express';
+import { authMiddleware } from '../../middleware/authMiddleware.js';
 import * as transactionController from '../controllers/transactionController.js';
 
 const router = Router();
+
+// Todas las rutas requieren sesión iniciada
+router.use(authMiddleware);
 
 router.post('/', transactionController.crearTransaccion);
 router.get('/', transactionController.listarTransacciones);

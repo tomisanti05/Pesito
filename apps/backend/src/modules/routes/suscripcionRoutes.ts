@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { authMiddleware } from "../../middleware/authMiddleware.js";
 import {
     listarSuscripciones,
     crearSuscripcion,
@@ -8,6 +9,9 @@ import {
 } from "../controllers/suscripcionController.js";
 
 const router = Router();
+
+// Todas las rutas requieren sesión iniciada
+router.use(authMiddleware);
 
 // GET /api/v1/suscripciones -> Listado paginado
 router.get("/", listarSuscripciones);

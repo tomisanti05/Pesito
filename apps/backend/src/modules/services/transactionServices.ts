@@ -1,5 +1,7 @@
 import { Decimal } from 'decimal.js';
+import type { Transaction as SequelizeTransaction } from 'sequelize';
 import { Transaction } from '../models/transaction.js';
+import Billetera from '../models/billetera.js';
 import { aplicarMovimiento } from './billeteraService.js';
 import sequelize from '../../config/database.js';
 
@@ -75,10 +77,23 @@ function efectoFirmado(tipo: string, monto: string): Decimal {
   return tipo === 'ingreso' ? valor : valor.negated();
 }
 
-export async function registerTransaction(dto: RegistrarTransaccionDTO) {
+// Verifica que la billetera pertenezca al usuario (si se pasó idUsuario).
+async function verificarPropietario(idBilletera: number, idUsuario?: number, t?: SequelizeTransaction) {
+  if (idUsuario === undefined) return;
+  const billetera = await Billetera.findOne({
+    where: { idBilletera, idUsuario },
+    transaction: t,
+  });
+  if (!billetera) {
+    throw errorHttp('Movimiento no encontrado', 404);
+  }
+}
+
+export async function registerTransaction(dto: RegistrarTransaccionDTO, idUsuario?: number) {
   validarDatosMovimiento(dto);
 
   return await sequelize.transaction(async (t) => {
+    await verificarPropietario(dto.idBilletera, idUsuario, t);
     await aplicarMovimiento(dto.idBilletera, dto.tipo, dto.monto, t);
 
     const transaccion = await Transaction.create(
@@ -97,20 +112,31 @@ export async function registerTransaction(dto: RegistrarTransaccionDTO) {
   });
 }
 
-export async function listTransactions(filtro?: { idBilletera?: number }) {
-  const where = filtro?.idBilletera ? { idBilletera: filtro.idBilletera } : {};
+export async function listTransactions(filtro?: { idBilletera?: number }, idUsuario?: number) {
+  const where: Record<string, unknown> = {};
+  if (filtro?.idBilletera) {
+    where.idBilletera = filtro.idBilletera;
+  } else if (idUsuario !== undefined) {
+    // Sin filtro explícito, solo las transacciones de las billeteras propias.
+    const billeteras = await Billetera.findAll({
+      where: { idUsuario },
+      attributes: ['idBilletera'],
+    });
+    where.idBilletera = billeteras.map((b) => b.idBilletera);
+  }
   return await Transaction.findAll({ where, order: [['fecha', 'DESC']] });
 }
 
-export async function getTransaction(id: number) {
+export async function getTransaction(id: number, idUsuario?: number) {
   const transaccion = await Transaction.findByPk(id);
   if (!transaccion) {
     throw errorHttp('Movimiento no encontrado', 404);
   }
+  await verificarPropietario(transaccion.idBilletera, idUsuario);
   return transaccion;
 }
 
-export async function editTransaction(id: number, dto: EditarTransaccionDTO) {
+export async function editTransaction(id: number, dto: EditarTransaccionDTO, idUsuario?: number) {
   if (dto.idBilletera !== undefined) {
     throw errorHttp('No se permite cambiar la billetera de una transaccion', 400);
   }
@@ -123,6 +149,7 @@ export async function editTransaction(id: number, dto: EditarTransaccionDTO) {
     if (!transaccion) {
       throw errorHttp('Movimiento no encontrado', 404);
     }
+    await verificarPropietario(transaccion.idBilletera, idUsuario, t);
 
     const datos = {
       idBilletera: transaccion.idBilletera,
@@ -148,7 +175,7 @@ export async function editTransaction(id: number, dto: EditarTransaccionDTO) {
   });
 }
 
-export async function deleteTransaction(id: number) {
+export async function deleteTransaction(id: number, idUsuario?: number) {
   return await sequelize.transaction(async (t) => {
     const transaccion = await Transaction.findByPk(id, {
       transaction: t,
@@ -157,6 +184,7 @@ export async function deleteTransaction(id: number) {
     if (!transaccion) {
       throw errorHttp('Movimiento no encontrado', 404);
     }
+    await verificarPropietario(transaccion.idBilletera, idUsuario, t);
 
     const tipoInverso = transaccion.tipo === 'ingreso' ? 'egreso' : 'ingreso';
     await aplicarMovimiento(transaccion.idBilletera, tipoInverso, transaccion.monto, t);

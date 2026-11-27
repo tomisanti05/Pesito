@@ -2,7 +2,7 @@
 
 Aplicación web para controlar ingresos, gastos, billeteras, tarjetas, suscripciones y boletas. Es un monorepo con un backend Express 5 + TypeScript y un frontend React 19 + Vite, desplegado como un único proyecto en Vercel.
 
-El backend expone una API REST sobre PostgreSQL y el frontend la consume. El frontend usa un usuario de demostración (`ID_USUARIO = 1`).
+El backend expone una API REST sobre PostgreSQL con **autenticación JWT** (registro, login, recuperación y cambio de contraseña). Todas las rutas de recursos están protegidas y con ownership por usuario; el frontend consume la API con el token guardado en `localStorage`.
 
 Documentación específica:
 
@@ -136,6 +136,10 @@ El backend carga el `.env` de la raíz del repositorio. La conexión usa SSL y u
 | `DB_NAME` | Nombre de la base | `postgres` |
 | `DB_USER` | Usuario de PostgreSQL | `postgres.<project-ref>` |
 | `DB_PASSWORD` | Contraseña de PostgreSQL | `tu-password-de-supabase` |
+| `JWT_SECRET` | Secreto para firmar tokens JWT | *(aleatorio)* |
+| `JWT_EXPIRES_IN` | Vigencia del token JWT | `7d` |
+| `RESET_TOKEN_TTL_MIN` | Vigencia del enlace de recuperación (min) | `30` |
+| `FRONTEND_URL` | URL del frontend (para enlaces de reset) | `http://localhost:5173` |
 
 ## Scripts
 
@@ -165,6 +169,32 @@ Cada aplicación tiene `dev`, `build`, `lint`, `typecheck` y `test`. El backend 
 | `/api/v1/tarjetas` | `tarjetaRoutes` |
 
 Los módulos de usuarios, billeteras, boletas, suscripciones y tarjetas responden `{ mensaje }`; transacciones usa `{ error }`. El detalle de cada endpoint está en [docs/api.md](docs/api.md).
+
+### Autenticación (`/api/auth`)
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| POST | `/api/auth/register` | Registrar usuario (devuelve token + usuario) |
+| POST | `/api/auth/login` | Iniciar sesión (devuelve token + usuario) |
+| POST | `/api/auth/forgot-password` | Enviar enlace de recuperación |
+| POST | `/api/auth/reset-password` | Restablecer contraseña con el token del enlace |
+| GET | `/api/auth/me` | Perfil del usuario autenticado **[auth]** |
+| POST | `/api/auth/change-password` | Cambiar contraseña (con la actual) **[auth]** |
+
+- Las contraseñas se hashean con **bcryptjs** (nunca se guardan en claro).
+- El token JWT se envía como `Authorization: Bearer <token>`.
+- El token de recuperación se guarda en la base como **hash SHA-256**; el crudo viaja solo en el enlace `/reset-password?token=...`. En desarrollo el backend además devuelve/imprime el enlace en la respuesta del `forgot-password`.
+- El usuario demo (`santiago@test.com`) tiene la contraseña `Demo1234`.
+
+**Protección de rutas**: todos los endpoints de recursos (`/api/users`, `/api/transactions`, `/api/v1/billeteras`, `/api/v1/suscripciones`, `/api/v1/boletas`, `/api/v1/tarjetas`) exigen token. Un usuario normal solo ve y modifica **sus propios** registros; el rol `admin` puede administrar todo. Listar y crear usuarios queda restringido a admins (el registro público vive en `/api/auth/register`).
+
+Ejemplo de login:
+
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "santiago@test.com", "password": "Demo1234"}'
+```
 
 Reglas generales:
 
@@ -217,27 +247,37 @@ El detalle de capas, flujos y esquema está en [docs/arquitectura.md](docs/arqui
 
 SPA con React Router. Rutas definidas en `apps/frontend/src/App.tsx`:
 
-| Ruta | Página |
-| --- | --- |
-| `/` | Redirige a `/inicio` |
-| `/inicio` | Inicio |
-| `/midinero` | Mi dinero |
-| `/transacciones` | Transacciones |
-| `/facturacion` | Facturación |
-| `/tarjetas` | Tarjetas |
-| `/subscripciones` | Suscripciones |
-| `/miCuenta` | Mi cuenta |
-| `*` | 404 |
+| Ruta | Página | Acceso |
+| --- | --- | --- |
+| `/` | Redirige a `/inicio` | - |
+| `/login` | Login | público |
+| `/register` | Registro | público |
+| `/forgot-password` | Recuperar contraseña | público |
+| `/reset-password` | Nueva contraseña | público |
+| `/inicio` | Inicio | requiere sesión |
+| `/midinero` | Mi dinero | requiere sesión |
+| `/transacciones` | Transacciones | requiere sesión |
+| `/facturacion` | Facturación | requiere sesión |
+| `/tarjetas` | Tarjetas | requiere sesión |
+| `/subscripciones` | Suscripciones | requiere sesión |
+| `/miCuenta` | Mi cuenta | requiere sesión |
+| `*` | 404 | - |
 
-Todas las páginas consumen la API a través de `apps/frontend/src/services/api.ts`. El cliente centraliza las llamadas y el manejo de errores.
+Todas las páginas consumen la API a través de `apps/frontend/src/services/api.ts`. El cliente centraliza las llamadas y el manejo de errores, agrega automáticamente el header `Authorization: Bearer <token>` con el JWT guardado en `localStorage` y descarta el token si la API responde 401. `AuthProvider` (`apps/frontend/src/context/AuthContext.tsx`) expone el usuario autenticado vía `useAuth()`, y las rutas privadas están envueltas en `RutaProtegida` (redirige a `/login` si no hay sesión). En "Mi cuenta" se puede cambiar la contraseña.
 
 El detalle del paquete (scripts, estructura y cómo levantarlo solo) está en [apps/frontend/README.md](apps/frontend/README.md).
 
+## Migraciones
+
+El esquema base vive en `apps/db/schema.sql` y los datos demo en `apps/db/seeds.sql`. Las migraciones incrementales están en `apps/db/migrations/` y se aplican a mano en el SQL Editor (por ejemplo, Supabase):
+
+- `001_auth.sql`: agrega `password_hash` a `Usuarios` y crea la tabla `PasswordResetToken`. **Requerida para usar el login.**
+
 ## Pruebas
 
-Hay 31 pruebas unitarias con Vitest:
+Hay pruebas unitarias con Vitest:
 
-- Backend: `userServices.test.ts`, `billeteraService.test.ts` y `tarjetaService.test.ts` (22 tests).
+- Backend: `userServices.test.ts`, `authService.test.ts`, `billeteraService.test.ts` y `tarjetaService.test.ts` (35 tests).
 - Frontend: `resumenGastos.test.ts` (9 tests).
 
 `pnpm check` ejecuta lint, typecheck y tests. El CI de GitHub Actions corre ese comando en cada push y pull request.
@@ -255,4 +295,13 @@ Los rewrites mandan `/api/(.*)` al backend y `/(.*)` al frontend. El entrypoint 
 pnpm deploy
 ```
 
-Las variables de entorno de la base se configuran en el proyecto de Vercel. El `.env` no se versiona.
+Las variables de entorno (`DB_*` y las de autenticación: `JWT_SECRET`, `FRONTEND_URL`, etc.) se configuran en el proyecto de Vercel. El `.env` no se versiona.
+
+## Pendientes / Roadmap
+
+- [x] Conectar el frontend a la API real (`services/api.ts`).
+- [x] Autenticación y autorización (JWT + rol `admin` con uso real).
+- [ ] Unificar los nombres de tabla: `Transaction` referencia `Billeteras` mientras que `Billetera` define la tabla `wallets`.
+- [ ] Enviar el email de recuperación por un servicio real (hoy solo se registra el enlace en desarrollo).
+- [ ] Exportar listados en PDF/XLSX y gráfico estadístico en el home (requisitos de la entrega final).
+- [ ] Revisar `.gitignore`: `.env*` también ignora `.env.example`.

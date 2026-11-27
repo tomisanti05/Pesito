@@ -4,6 +4,8 @@ import express, {
   type Response,
 } from "express";
 import { connectDatabase } from "./config/database.js";
+import { validarConfigAuth } from "./config/auth.js";
+import authRoutes from "./modules/routes/authRoutes.js";
 import userRoutes from "./modules/routes/userRoutes.js";
 import transactionRoutes from "./modules/routes/transactionRoutes.js";
 import billeteraRoutes from "./modules/routes/billeteraRoutes.js";
@@ -12,6 +14,8 @@ import boletaRoutes from "./modules/routes/boletaRoutes.js";
 import tarjetaRoutes from "./modules/routes/tarjetaRoutes.js";
 
 const app = express();
+
+validarConfigAuth();
 
 app.use(express.json());
 
@@ -32,6 +36,7 @@ async function conectarBase(
   }
 }
 
+app.use("/api/auth", conectarBase, authRoutes);
 app.use("/api/users", conectarBase, userRoutes);
 app.use("/api/transactions", conectarBase, transactionRoutes);
 app.use("/api/v1/billeteras", conectarBase, billeteraRoutes);

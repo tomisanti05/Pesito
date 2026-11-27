@@ -22,6 +22,12 @@
   max-width: var(--layout-content-max);
 }
 
+.estado-auth {
+  margin: auto;
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}
+
 @media (max-width: 1024px) {
   .contenedor {
     display: block;
@@ -29,11 +35,5 @@
 
   .main-content {
     padding: 76px 16px 24px;
-  }
-}
-
-@media (max-width: 480px) {
-  .main-content {
-    padding: 72px 12px 20px;
   }
 }

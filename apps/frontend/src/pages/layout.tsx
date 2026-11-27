@@ -4,6 +4,7 @@ import {
     CircleUserRound,
     CreditCard,
     Home,
+    LogOut,
     PanelLeftClose,
     PanelLeftOpen,
     ReceiptText,
@@ -11,9 +12,8 @@ import {
     Wallet,
     type LucideIcon,
 } from 'lucide-react'
-import { NavLink } from 'react-router-dom'
-import { apiGet, ID_USUARIO } from '../services/api'
-import type { Usuario } from '../types/finanzas'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/useAuth'
 import '../layout.css'
 
 const CLAVE_SIDEBAR = 'sidebar-abierta'
@@ -51,23 +51,10 @@ function obtenerIniciales(nombre: string): string {
 }
 
 export default function Layout() {
+    const { usuario, cerrarSesion } = useAuth()
+    const navigate = useNavigate()
     const [abierta, setAbierta] = useState(leerEstadoInicial)
     const [menuMovilAbierto, setMenuMovilAbierto] = useState(false)
-    const [usuario, setUsuario] = useState<Usuario | null>(null)
-
-    useEffect(() => {
-        let activo = true
-        apiGet<Usuario>(`/api/users/${ID_USUARIO}`)
-            .then((datos) => {
-                if (activo) setUsuario(datos)
-            })
-            .catch(() => {
-                // Si la API falla, la barra muestra el saludo sin nombre.
-            })
-        return () => {
-            activo = false
-        }
-    }, [])
 
     useEffect(() => {
         if (!menuMovilAbierto) return
@@ -96,6 +83,11 @@ export default function Layout() {
         } catch {
             // Si el navegador bloquea el almacenamiento, la barra sigue funcionando.
         }
+    }
+
+    const salir = () => {
+        cerrarSesion()
+        navigate('/login', { replace: true })
     }
 
     const nombre = usuario?.nombre.trim() ?? ''
@@ -179,6 +171,15 @@ export default function Layout() {
                         </NavLink>
                     ))}
                 </nav>
+                <button
+                    type="button"
+                    className="sidebar-logout"
+                    onClick={salir}
+                    title="Cerrar sesión"
+                >
+                    <LogOut size={20} aria-hidden="true" />
+                    {abierta && <span>Cerrar sesión</span>}
+                </button>
             </aside>
         </>
     )

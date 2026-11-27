@@ -188,6 +188,36 @@
   text-overflow: ellipsis;
 }
 
+.sidebar-logout {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  background-color: transparent;
+  color: var(--color-danger-text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.sidebar-logout:hover {
+  background-color: var(--color-danger-bg);
+}
+
+.sidebar-card.colapsada .sidebar-logout {
+  justify-content: center;
+  padding: 10px;
+}
+
+.sidebar-card.colapsada .sidebar-logout span {
+  display: none;
+}
+
 .sidebar-card.colapsada .sidebar-menu a {
   justify-content: center;
   padding: 10px;

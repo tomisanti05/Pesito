@@ -43,6 +43,10 @@ function parsearFiltros(req: Request): suscripcionService.FiltrosSuscripcion {
   return filtros;
 }
 
+function scopeUsuario(req: Request): number | undefined {
+  return req.usuario!.rol === "admin" ? undefined : req.usuario!.id;
+}
+
 // GET /api/v1/suscripciones -> Listado paginado con búsqueda y orden
 export async function listarSuscripciones(req: Request, res: Response): Promise<void> {
   try {
@@ -52,6 +56,9 @@ export async function listarSuscripciones(req: Request, res: Response): Promise<
       "idSuscripcion",
     );
     const filtros = parsearFiltros(req);
+    const idUsuario = scopeUsuario(req);
+    // Un usuario normal solo ve sus propias suscripciones.
+    if (idUsuario !== undefined) filtros.idUsuario = idUsuario;
     const resultado = await suscripcionService.listarSuscripciones(paginacion, filtros);
     res.status(200).json(resultado);
   } catch (error: any) {
@@ -62,7 +69,15 @@ export async function listarSuscripciones(req: Request, res: Response): Promise<
 // POST /api/v1/suscripciones
 export async function crearSuscripcion(req: Request, res: Response): Promise<void> {
   try {
-    const nueva = await suscripcionService.crearSuscripcion(req.body);
+    // El propietario sale del token. Un admin puede crear para otro usuario.
+    const idUsuario =
+      req.usuario!.rol === "admin" && req.body?.idUsuario
+        ? req.body.idUsuario
+        : req.usuario!.id;
+    const nueva = await suscripcionService.crearSuscripcion({
+      ...req.body,
+      idUsuario,
+    });
     res.status(201).json(nueva);
   } catch (error: any) {
     responderError(res, error);
@@ -75,7 +90,7 @@ export async function obtenerSuscripcionPorId(req: Request, res: Response): Prom
     const idSuscripcion = parsearId(req, res);
     if (idSuscripcion === null) return;
 
-    const suscripcion = await suscripcionService.obtenerSuscripcionPorId(idSuscripcion);
+    const suscripcion = await suscripcionService.obtenerSuscripcionPorId(idSuscripcion, scopeUsuario(req));
     res.status(200).json(suscripcion);
   } catch (error: any) {
     responderError(res, error);
@@ -91,6 +106,7 @@ export async function editarSuscripcion(req: Request, res: Response): Promise<vo
     const actualizada = await suscripcionService.editarSuscripcion(
       idSuscripcion,
       req.body,
+      scopeUsuario(req),
     );
     res.status(200).json(actualizada);
   } catch (error: any) {
@@ -104,7 +120,7 @@ export async function eliminarSuscripcion(req: Request, res: Response): Promise<
     const idSuscripcion = parsearId(req, res);
     if (idSuscripcion === null) return;
 
-    const eliminada = await suscripcionService.eliminarSuscripcion(idSuscripcion);
+    const eliminada = await suscripcionService.eliminarSuscripcion(idSuscripcion, scopeUsuario(req));
     res.status(200).json({
       mensaje: "Suscripción eliminada correctamente.",
       data: eliminada,

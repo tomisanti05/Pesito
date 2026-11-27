@@ -3,10 +3,16 @@
 -- Ejecutar en el SQL Editor de Supabase, después de schema.sql
 -- ============================================================
 
--- Usuario demo
+-- Usuario demo (contraseña: Demo1234)
 INSERT INTO "Usuarios" ("nombre", "email", "telefono")
 VALUES ('Santiago De Dios', 'santiago@test.com', '2915555555')
 ON CONFLICT ("email") DO NOTHING;
+
+-- Asigna la contraseña demo solo si el usuario todavía no tiene una.
+UPDATE "Usuarios"
+SET "password_hash" = '$2b$10$IvBjb//e/43o0pLbZs/jMuworIXmzGq6NHhhTqeVy3yazmiR4nuDG'
+WHERE "email" = 'santiago@test.com'
+  AND "password_hash" IS NULL;
 
 -- Categorías
 INSERT INTO "Categoria" ("nombre", "descripcion")

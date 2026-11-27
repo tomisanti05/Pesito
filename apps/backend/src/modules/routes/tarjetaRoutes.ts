@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { authMiddleware } from "../../middleware/authMiddleware.js";
 import {
   crearTarjeta,
   editarTarjeta,
@@ -8,6 +9,9 @@ import {
 } from "../controllers/tarjetaController.js";
 
 const router = Router();
+
+// Todas las rutas requieren sesión iniciada
+router.use(authMiddleware);
 
 // GET /api/v1/tarjetas -> Listado paginado
 router.get("/", listarTarjetas);

@@ -14,6 +14,7 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
   declare nombre: string;
   declare email: string;
   declare telefono: CreationOptional<string | null>;
+  declare passwordHash: CreationOptional<string | null>;
   declare rol: CreationOptional<RolUsuario>;
   declare activo: CreationOptional<boolean>;
   declare createdAt: CreationOptional<Date>;
@@ -26,6 +27,11 @@ User.init(
     nombre: { type: DataTypes.STRING(100), allowNull: false },
     email: { type: DataTypes.STRING(150), allowNull: false, unique: true },
     telefono: { type: DataTypes.STRING(30), allowNull: true },
+    passwordHash: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      field: "password_hash",
+    },
     rol: {
       type: DataTypes.ENUM("usuario", "admin"),
       allowNull: false,
@@ -39,6 +45,9 @@ User.init(
     sequelize,
     tableName: "Usuarios",
     timestamps: true,
+    defaultScope: {
+      attributes: { exclude: ["passwordHash"] },
+    },
   },
 );
 

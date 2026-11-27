@@ -7,7 +7,6 @@ import {
   apiGet,
   apiPatch,
   apiPost,
-  ID_USUARIO,
 } from '../services/api';
 import type { Billetera, ListaPaginada, Transaccion } from '../types/finanzas';
 import { formatearFecha } from '../utils/formato';
@@ -175,10 +174,8 @@ function MiDinero() {
       if (editando) {
         await apiPatch<Billetera>(`/billeteras/${editando.idBilletera}`, form);
       } else {
-        await apiPost<Billetera>('/billeteras', {
-          idUsuario: ID_USUARIO,
-          ...form,
-        });
+        // El propietario lo define el backend a partir del token.
+        await apiPost<Billetera>('/billeteras', form);
       }
       setModalAbierto(false);
       setEditando(null);

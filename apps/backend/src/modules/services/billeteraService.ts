@@ -75,8 +75,10 @@ export async function CrearBilletera(data:{idUsuario:number;nombre:string; tipo:
     });
 }
 
-export async function obtenerBilleteraPorId(idBilletera:number) {
-    const billetera = await Billetera.findByPk(idBilletera);
+async function buscarBilletera(idBilletera:number, idUsuario?: number) {
+    const billetera = idUsuario
+        ? await Billetera.findOne({ where: { idBilletera, idUsuario } })
+        : await Billetera.findByPk(idBilletera);
 
     if(!billetera){
         throw { status:404,message:"la billetera no existe"};
@@ -84,15 +86,25 @@ export async function obtenerBilleteraPorId(idBilletera:number) {
     return billetera
 }
 
-export async function listarBilleteras(paginacion: PaginationParams) {
+export async function obtenerBilleteraPorId(idBilletera:number, idUsuario?: number) {
+    return await buscarBilletera(idBilletera, idUsuario);
+}
+
+export async function listarBilleteras(paginacion: PaginationParams, idUsuario?: number) {
+    const condiciones: Record<string, unknown>[] = [];
+    if (idUsuario) {
+        condiciones.push({ idUsuario });
+    }
+
     const where = paginacion.search
         ? {
             [Op.or]: [
                 { nombre: { [Op.iLike]: `%${paginacion.search}%` } },
                 { tipo: { [Op.iLike]: `%${paginacion.search}%` } },
             ],
+            ...(condiciones.length > 0 ? { [Op.and]: condiciones } : {}),
         }
-        : undefined;
+        : (condiciones.length > 0 ? { [Op.and]: condiciones } : undefined);
 
     const { rows, count } = await Billetera.findAndCountAll({
         where,
@@ -109,26 +121,20 @@ export async function listarBilleteras(paginacion: PaginationParams) {
     };
 }
 
-export async function eliminarBilletera(idBilletera:number) {
-    const billetera = await Billetera.findByPk(idBilletera);
-    if (!billetera){
-        throw { status:404,message:"la billetera no existe"};
-    }
+export async function eliminarBilletera(idBilletera:number, idUsuario?: number) {
+    const billetera = await buscarBilletera(idBilletera, idUsuario);
 
     // Las transacciones asociadas se eliminan por ON DELETE CASCADE del esquema
     await billetera.destroy();
     return billetera;
 }
 
-export async function editarBilletera(idBilletera:number,data:{nombre?:string;tipo?:string;saldo?:any;idUsuario?:any;}) {
+export async function editarBilletera(idBilletera:number,data:{nombre?:string;tipo?:string;saldo?:any;idUsuario?:any;}, idUsuario?: number) {
     if (data.saldo !== undefined || data.idUsuario !== undefined){
         throw {status:400,message:"no se permite modificar el saldo o el propietario de la billetera"};
     }
     
-    const billetera = await Billetera.findByPk(idBilletera)
-    if (!billetera){
-        throw { status:404,message:"la billetera no existe"};
-    }
+    const billetera = await buscarBilletera(idBilletera, idUsuario);
 
     if(data.nombre){
         billetera.nombre = data.nombre.trim();
