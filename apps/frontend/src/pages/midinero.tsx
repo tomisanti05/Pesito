@@ -283,66 +283,6 @@ function MiDinero() {
             )}
           </section>
 
-          <section className="midinero-seccion">
-            <h2>Movimientos</h2>
-
-            <div className="midinero-filtros">
-              <button
-                type="button"
-                className={filtro === 'todo' ? 'activo' : ''}
-                onClick={() => setFiltro('todo')}
-              >
-                Todo
-              </button>
-              <button
-                type="button"
-                className={filtro === 'ingreso' ? 'activo' : ''}
-                onClick={() => setFiltro('ingreso')}
-              >
-                Ingresos
-              </button>
-              <button
-                type="button"
-                className={filtro === 'gasto' ? 'activo' : ''}
-                onClick={() => setFiltro('gasto')}
-              >
-                Gastos
-              </button>
-            </div>
-
-            {movimientosFiltrados.length === 0 ? (
-              <p className="midinero-vacio">No hay movimientos para mostrar.</p>
-            ) : (
-              movimientosVisibles.map((movimiento) => {
-                const esGasto = movimiento.tipo === 'egreso';
-                const tipoVisual = esGasto ? 'gasto' : 'ingreso';
-                return (
-                  <div key={movimiento.idTransaccion} className="midinero-fila">
-                    <span className="midinero-concepto">
-                      <span className={`dot ${tipoVisual}`} />
-                      {movimiento.descripcion || movimiento.categoria}
-                    </span>
-                    <span className="midinero-fecha">
-                      {formatearFecha(movimiento.fecha)}
-                    </span>
-                    <span className={tipoVisual}>
-                      {esGasto ? '-' : '+'} $
-                      {Number(movimiento.monto).toLocaleString('es-AR', {
-                        maximumFractionDigits: 2,
-                      })}
-                    </span>
-                  </div>
-                );
-              })
-            )}
-
-            {movimientosFiltrados.length > 10 && (
-              <Link className="midinero-ver-todos" to="/transacciones">
-                Ver todos los movimientos ({movimientosFiltrados.length})
-              </Link>
-            )}
-          </section>
-
           <section
             className="midinero-seccion midinero-graficos"
             aria-labelledby="titulo-graficos"
@@ -402,6 +342,66 @@ function MiDinero() {
               total={resumenGrafico.total}
               vacio={resumenGrafico.vacio}
             />
+          </section>
+
+          <section className="midinero-seccion">
+            <h2>Movimientos</h2>
+
+            <div className="midinero-filtros">
+              <button
+                type="button"
+                className={filtro === 'todo' ? 'activo' : ''}
+                onClick={() => setFiltro('todo')}
+              >
+                Todo
+              </button>
+              <button
+                type="button"
+                className={filtro === 'ingreso' ? 'activo' : ''}
+                onClick={() => setFiltro('ingreso')}
+              >
+                Ingresos
+              </button>
+              <button
+                type="button"
+                className={filtro === 'gasto' ? 'activo' : ''}
+                onClick={() => setFiltro('gasto')}
+              >
+                Gastos
+              </button>
+            </div>
+
+            {movimientosFiltrados.length === 0 ? (
+              <p className="midinero-vacio">No hay movimientos para mostrar.</p>
+            ) : (
+              movimientosVisibles.map((movimiento) => {
+                const esGasto = movimiento.tipo === 'egreso';
+                const tipoVisual = esGasto ? 'gasto' : 'ingreso';
+                return (
+                  <div key={movimiento.idTransaccion} className="midinero-fila">
+                    <span className="midinero-concepto">
+                      <span className={`dot ${tipoVisual}`} />
+                      {movimiento.descripcion || movimiento.categoria}
+                    </span>
+                    <span className="midinero-fecha">
+                      {formatearFecha(movimiento.fecha)}
+                    </span>
+                    <span className={tipoVisual}>
+                      {esGasto ? '-' : '+'} $
+                      {Number(movimiento.monto).toLocaleString('es-AR', {
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                );
+              })
+            )}
+
+            {movimientosFiltrados.length > 10 && (
+              <Link className="midinero-ver-todos" to="/transacciones">
+                Ver todos los movimientos ({movimientosFiltrados.length})
+              </Link>
+            )}
           </section>
         </>
       )}
