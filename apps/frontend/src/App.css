@@ -1,6 +1,6 @@
 .contenedor {
-  display: flex ;
-  flex-direction: row ;
+  display: flex;
+  flex-direction: row;
   align-items: flex-start;
   width: 100%;
   min-height: 100vh;
@@ -9,9 +9,31 @@
 
 .main-content {
   flex: 1;
-  padding: 40px;
+  min-width: 0;
+  padding: clamp(20px, 3vw, 40px);
   display: flex;
   flex-direction: column;
-  align-items: center; 
+  align-items: center;
   box-sizing: border-box;
+}
+
+.main-content > * {
+  width: 100%;
+  max-width: var(--layout-content-max);
+}
+
+.estado-auth {
+  margin: auto;
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 1024px) {
+  .contenedor {
+    display: block;
+  }
+
+  .main-content {
+    padding: 76px 16px 24px;
+  }
 }

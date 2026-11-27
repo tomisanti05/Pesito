@@ -155,8 +155,10 @@ export async function listarSuscripciones(
   };
 }
 
-export async function obtenerSuscripcionPorId(idSuscripcion: number) {
-  const suscripcion = await Suscripcion.findByPk(idSuscripcion);
+export async function obtenerSuscripcionPorId(idSuscripcion: number, idUsuario?: number) {
+  const suscripcion = idUsuario
+    ? await Suscripcion.findOne({ where: { idSuscripcion, idUsuario } })
+    : await Suscripcion.findByPk(idSuscripcion);
   if (!suscripcion) {
     throw errorHttp("La suscripción no existe.", 404);
   }
@@ -195,12 +197,15 @@ export async function crearSuscripcion(data: CrearSuscripcionDTO) {
 export async function editarSuscripcion(
   idSuscripcion: number,
   data: EditarSuscripcionDTO,
+  idUsuario?: number,
 ) {
   if (data.idUsuario !== undefined) {
     throw errorHttp("No se permite modificar el propietario de la suscripción.", 400);
   }
 
-  const suscripcion = await Suscripcion.findByPk(idSuscripcion);
+  const suscripcion = idUsuario
+    ? await Suscripcion.findOne({ where: { idSuscripcion, idUsuario } })
+    : await Suscripcion.findByPk(idSuscripcion);
   if (!suscripcion) {
     throw errorHttp("La suscripción no existe.", 404);
   }
@@ -234,8 +239,10 @@ export async function editarSuscripcion(
   return suscripcion;
 }
 
-export async function eliminarSuscripcion(idSuscripcion: number) {
-  const suscripcion = await Suscripcion.findByPk(idSuscripcion);
+export async function eliminarSuscripcion(idSuscripcion: number, idUsuario?: number) {
+  const suscripcion = idUsuario
+    ? await Suscripcion.findOne({ where: { idSuscripcion, idUsuario } })
+    : await Suscripcion.findByPk(idSuscripcion);
   if (!suscripcion) {
     throw errorHttp("La suscripción no existe.", 404);
   }

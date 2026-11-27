@@ -1,6 +1,9 @@
 import { Op, UniqueConstraintError, type WhereOptions } from "sequelize";
 import User, { type RolUsuario } from "../models/user.js";
 import type { PaginationParams } from "../../utils/pagination.js";
+import { HttpError } from "../../utils/httpError.js";
+
+export { HttpError };
 
 const NOMBRE_MAX = 100;
 const EMAIL_MAX = 150;
@@ -20,16 +23,6 @@ export const CAMPOS_ORDEN_USUARIO = [
   "createdAt",
   "updatedAt",
 ] as const;
-
-export class HttpError extends Error {
-  readonly statusCode: number;
-
-  constructor(statusCode: number, message: string) {
-    super(message);
-    this.name = "HttpError";
-    this.statusCode = statusCode;
-  }
-}
 
 export interface CrearUsuarioInput {
   nombre: string;

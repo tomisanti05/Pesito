@@ -170,10 +170,12 @@ export async function listarTarjetas(
   };
 }
 
-export async function obtenerTarjetaPorId(id: unknown) {
+export async function obtenerTarjetaPorId(id: unknown, idUsuario?: number) {
   const idTarjeta = validarId(id, "id");
 
-  const tarjeta = await Tarjeta.findByPk(idTarjeta);
+  const tarjeta = idUsuario
+    ? await Tarjeta.findOne({ where: { id: idTarjeta, idUsuario } })
+    : await Tarjeta.findByPk(idTarjeta);
   if (!tarjeta) {
     throw errorHttp("La tarjeta no existe.", 404);
   }
@@ -201,7 +203,7 @@ export async function crearTarjeta(data: CrearTarjetaDTO) {
   });
 }
 
-export async function editarTarjeta(id: unknown, data: EditarTarjetaDTO) {
+export async function editarTarjeta(id: unknown, data: EditarTarjetaDTO, idUsuario?: number) {
   const idTarjeta = validarId(id, "id");
 
   if (data === null || typeof data !== "object" || Array.isArray(data)) {
@@ -222,7 +224,9 @@ export async function editarTarjeta(id: unknown, data: EditarTarjetaDTO) {
     throw errorHttp("No se enviaron datos para actualizar.", 400);
   }
 
-  const tarjeta = await Tarjeta.findByPk(idTarjeta);
+  const tarjeta = idUsuario
+    ? await Tarjeta.findOne({ where: { id: idTarjeta, idUsuario } })
+    : await Tarjeta.findByPk(idTarjeta);
   if (!tarjeta) {
     throw errorHttp("La tarjeta no existe.", 404);
   }
@@ -258,10 +262,12 @@ export async function editarTarjeta(id: unknown, data: EditarTarjetaDTO) {
   return tarjeta;
 }
 
-export async function eliminarTarjeta(id: unknown) {
+export async function eliminarTarjeta(id: unknown, idUsuario?: number) {
   const idTarjeta = validarId(id, "id");
 
-  const tarjeta = await Tarjeta.findByPk(idTarjeta);
+  const tarjeta = idUsuario
+    ? await Tarjeta.findOne({ where: { id: idTarjeta, idUsuario } })
+    : await Tarjeta.findByPk(idTarjeta);
   if (!tarjeta) {
     throw errorHttp("La tarjeta no existe.", 404);
   }

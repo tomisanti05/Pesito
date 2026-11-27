@@ -1,16 +1,30 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import './midinero.css';
+import GraficoTorta from '../components/GraficoTorta';
+import SelectorPeriodo from '../components/SelectorPeriodo';
 import {
   apiDelete,
   apiGet,
   apiPatch,
   apiPost,
-  ID_USUARIO,
 } from '../services/api';
 import type { Billetera, ListaPaginada, Transaccion } from '../types/finanzas';
 import { formatearFecha } from '../utils/formato';
+import { filtrarPorPeriodo } from '../utils/periodo';
+import type { PeriodoSeleccionado } from '../utils/periodo';
+import {
+  agruparEgresosPorBilletera,
+  agruparEgresosPorCategoria,
+  COLORES_BALANCE,
+  construirPorciones,
+  PALETA_GRAFICO,
+  totalesIngresoEgreso,
+} from '../utils/resumenGastos';
+import type { DatoGrafico } from '../utils/resumenGastos';
 
 type Filtro = 'todo' | 'ingreso' | 'gasto';
+type VistaGrafico = 'categoria' | 'balance' | 'cuenta';
 
 interface FormBilletera {
   nombre: string;
@@ -40,6 +54,16 @@ function MiDinero() {
   const [billeteras, setBilleteras] = useState<Billetera[]>([]);
   const [movimientos, setMovimientos] = useState<Transaccion[]>([]);
   const [filtro, setFiltro] = useState<Filtro>('todo');
+  const [vistaGrafico, setVistaGrafico] = useState<VistaGrafico>('categoria');
+  const [periodoResumen, setPeriodoResumen] = useState<PeriodoSeleccionado>({
+    tipo: 'preset',
+    preset: 'mesActual',
+  });
+  const [periodoMovimientos, setPeriodoMovimientos] =
+    useState<PeriodoSeleccionado>({
+      tipo: 'preset',
+      preset: 'mesActual',
+    });
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -88,12 +112,54 @@ function MiDinero() {
     0,
   );
 
-  const movimientosFiltrados = movimientos.filter((movimiento) => {
+  const movimientosPeriodo = useMemo(
+    () => filtrarPorPeriodo(movimientos, periodoMovimientos),
+    [movimientos, periodoMovimientos],
+  );
+
+  const movimientosFiltrados = movimientosPeriodo.filter((movimiento) => {
     if (filtro === 'todo') return true;
     return filtro === 'ingreso'
       ? movimiento.tipo === 'ingreso'
       : movimiento.tipo === 'egreso';
   });
+
+  const movimientosVisibles = movimientosFiltrados.slice(0, 10);
+
+  const transaccionesPeriodo = useMemo(
+    () => filtrarPorPeriodo(movimientos, periodoResumen),
+    [movimientos, periodoResumen],
+  );
+
+  const resumenGrafico = useMemo(() => {
+    let datos: DatoGrafico[];
+    let colores: readonly string[];
+    let vacio: string;
+
+    if (vistaGrafico === 'balance') {
+      const { ingresos, egresos } = totalesIngresoEgreso(transaccionesPeriodo);
+      datos = [
+        { etiqueta: 'Ingresos', monto: ingresos },
+        { etiqueta: 'Gastos', monto: egresos },
+      ];
+      colores = COLORES_BALANCE;
+      vacio = 'No hay movimientos en el período.';
+    } else {
+      datos =
+        vistaGrafico === 'categoria'
+          ? agruparEgresosPorCategoria(transaccionesPeriodo)
+          : agruparEgresosPorBilletera(transaccionesPeriodo, billeteras);
+      colores = PALETA_GRAFICO;
+      vacio = 'No hay gastos en el período.';
+    }
+
+    const porciones = construirPorciones(datos, colores);
+    return {
+      porciones,
+      total: porciones.reduce((acc, porcion) => acc + porcion.monto, 0),
+      vacio,
+    };
+  }, [billeteras, transaccionesPeriodo, vistaGrafico]);
 
   function abrirCrear() {
     setEditando(null);
@@ -122,10 +188,8 @@ function MiDinero() {
       if (editando) {
         await apiPatch<Billetera>(`/billeteras/${editando.idBilletera}`, form);
       } else {
-        await apiPost<Billetera>('/billeteras', {
-          idUsuario: ID_USUARIO,
-          ...form,
-        });
+        // El propietario lo define el backend a partir del token.
+        await apiPost<Billetera>('/billeteras', form);
       }
       setModalAbierto(false);
       setEditando(null);
@@ -230,8 +294,68 @@ function MiDinero() {
             )}
           </section>
 
+          <section
+            className="midinero-seccion midinero-graficos"
+            aria-labelledby="titulo-graficos"
+          >
+            <div className="midinero-seccion-header">
+              <h2 id="titulo-graficos">Resumen del período</h2>
+              <SelectorPeriodo
+                valor={periodoResumen}
+                onChange={setPeriodoResumen}
+                movimientos={movimientos}
+                etiqueta="Período del resumen"
+              />
+            </div>
+
+            <div
+              className="midinero-graficos-tabs"
+              role="group"
+              aria-label="Tipo de gráfico"
+            >
+              <button
+                type="button"
+                className={vistaGrafico === 'categoria' ? 'activo' : ''}
+                aria-pressed={vistaGrafico === 'categoria'}
+                onClick={() => setVistaGrafico('categoria')}
+              >
+                Categorías
+              </button>
+              <button
+                type="button"
+                className={vistaGrafico === 'balance' ? 'activo' : ''}
+                aria-pressed={vistaGrafico === 'balance'}
+                onClick={() => setVistaGrafico('balance')}
+              >
+                Ingresos vs gastos
+              </button>
+              <button
+                type="button"
+                className={vistaGrafico === 'cuenta' ? 'activo' : ''}
+                aria-pressed={vistaGrafico === 'cuenta'}
+                onClick={() => setVistaGrafico('cuenta')}
+              >
+                Cuentas
+              </button>
+            </div>
+
+            <GraficoTorta
+              porciones={resumenGrafico.porciones}
+              total={resumenGrafico.total}
+              vacio={resumenGrafico.vacio}
+            />
+          </section>
+
           <section className="midinero-seccion">
-            <h2>Movimientos</h2>
+            <div className="midinero-seccion-header">
+              <h2>Movimientos</h2>
+              <SelectorPeriodo
+                valor={periodoMovimientos}
+                onChange={setPeriodoMovimientos}
+                movimientos={movimientos}
+                etiqueta="Período de movimientos"
+              />
+            </div>
 
             <div className="midinero-filtros">
               <button
@@ -260,7 +384,7 @@ function MiDinero() {
             {movimientosFiltrados.length === 0 ? (
               <p className="midinero-vacio">No hay movimientos para mostrar.</p>
             ) : (
-              movimientosFiltrados.map((movimiento) => {
+              movimientosVisibles.map((movimiento) => {
                 const esGasto = movimiento.tipo === 'egreso';
                 const tipoVisual = esGasto ? 'gasto' : 'ingreso';
                 return (
@@ -281,6 +405,12 @@ function MiDinero() {
                   </div>
                 );
               })
+            )}
+
+            {movimientosFiltrados.length > 10 && (
+              <Link className="midinero-ver-todos" to="/transacciones">
+                Ver todos los movimientos ({movimientosFiltrados.length})
+              </Link>
             )}
           </section>
         </>
