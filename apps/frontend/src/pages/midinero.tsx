@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { Link } from 'react-router-dom';
 import './midinero.css';
 import GraficoTorta from '../components/GraficoTorta';
+import SelectorPeriodo from '../components/SelectorPeriodo';
 import {
   apiDelete,
   apiGet,
@@ -10,16 +11,17 @@ import {
 } from '../services/api';
 import type { Billetera, ListaPaginada, Transaccion } from '../types/finanzas';
 import { formatearFecha } from '../utils/formato';
+import { filtrarPorPeriodo } from '../utils/periodo';
+import type { PeriodoSeleccionado } from '../utils/periodo';
 import {
   agruparEgresosPorBilletera,
   agruparEgresosPorCategoria,
   COLORES_BALANCE,
   construirPorciones,
-  filtrarPorPeriodo,
   PALETA_GRAFICO,
   totalesIngresoEgreso,
 } from '../utils/resumenGastos';
-import type { DatoGrafico, PeriodoGrafico } from '../utils/resumenGastos';
+import type { DatoGrafico } from '../utils/resumenGastos';
 
 type Filtro = 'todo' | 'ingreso' | 'gasto';
 type VistaGrafico = 'categoria' | 'balance' | 'cuenta';
@@ -53,8 +55,15 @@ function MiDinero() {
   const [movimientos, setMovimientos] = useState<Transaccion[]>([]);
   const [filtro, setFiltro] = useState<Filtro>('todo');
   const [vistaGrafico, setVistaGrafico] = useState<VistaGrafico>('categoria');
-  const [periodoGrafico, setPeriodoGrafico] =
-    useState<PeriodoGrafico>('mesActual');
+  const [periodoResumen, setPeriodoResumen] = useState<PeriodoSeleccionado>({
+    tipo: 'preset',
+    preset: 'mesActual',
+  });
+  const [periodoMovimientos, setPeriodoMovimientos] =
+    useState<PeriodoSeleccionado>({
+      tipo: 'preset',
+      preset: 'mesActual',
+    });
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -103,7 +112,12 @@ function MiDinero() {
     0,
   );
 
-  const movimientosFiltrados = movimientos.filter((movimiento) => {
+  const movimientosPeriodo = useMemo(
+    () => filtrarPorPeriodo(movimientos, periodoMovimientos),
+    [movimientos, periodoMovimientos],
+  );
+
+  const movimientosFiltrados = movimientosPeriodo.filter((movimiento) => {
     if (filtro === 'todo') return true;
     return filtro === 'ingreso'
       ? movimiento.tipo === 'ingreso'
@@ -113,8 +127,8 @@ function MiDinero() {
   const movimientosVisibles = movimientosFiltrados.slice(0, 10);
 
   const transaccionesPeriodo = useMemo(
-    () => filtrarPorPeriodo(movimientos, periodoGrafico),
-    [movimientos, periodoGrafico],
+    () => filtrarPorPeriodo(movimientos, periodoResumen),
+    [movimientos, periodoResumen],
   );
 
   const resumenGrafico = useMemo(() => {
@@ -284,23 +298,14 @@ function MiDinero() {
             className="midinero-seccion midinero-graficos"
             aria-labelledby="titulo-graficos"
           >
-            <div className="midinero-graficos-header">
+            <div className="midinero-seccion-header">
               <h2 id="titulo-graficos">Resumen del período</h2>
-              <label className="midinero-periodo">
-                <span>Período</span>
-                <select
-                  value={periodoGrafico}
-                  onChange={(evento) =>
-                    setPeriodoGrafico(
-                      evento.target.value as PeriodoGrafico,
-                    )
-                  }
-                >
-                  <option value="mesActual">Este mes</option>
-                  <option value="mesAnterior">Mes anterior</option>
-                  <option value="ultimos3Meses">Últimos 3 meses</option>
-                </select>
-              </label>
+              <SelectorPeriodo
+                valor={periodoResumen}
+                onChange={setPeriodoResumen}
+                movimientos={movimientos}
+                etiqueta="Período del resumen"
+              />
             </div>
 
             <div
@@ -342,7 +347,15 @@ function MiDinero() {
           </section>
 
           <section className="midinero-seccion">
-            <h2>Movimientos</h2>
+            <div className="midinero-seccion-header">
+              <h2>Movimientos</h2>
+              <SelectorPeriodo
+                valor={periodoMovimientos}
+                onChange={setPeriodoMovimientos}
+                movimientos={movimientos}
+                etiqueta="Período de movimientos"
+              />
+            </div>
 
             <div className="midinero-filtros">
               <button
