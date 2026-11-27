@@ -2,7 +2,7 @@
 
 Aplicación web para controlar ingresos, gastos, billeteras, tarjetas, suscripciones y boletas. Es un monorepo con un backend Express 5 + TypeScript y un frontend React 19 + Vite, desplegado como un único proyecto en Vercel.
 
-El backend expone una API REST sobre PostgreSQL con **autenticación JWT** (registro, login, recuperación y cambio de contraseña). Todas las rutas de recursos están protegidas y con ownership por usuario; el frontend consume la API con el token guardado en `localStorage`.
+El backend expone una API REST sobre PostgreSQL con **autenticación JWT** (login, recuperación y cambio de contraseña). Todas las rutas de recursos están protegidas y con ownership por usuario; el frontend consume la API con el token guardado en `localStorage`.
 
 Documentación específica:
 
