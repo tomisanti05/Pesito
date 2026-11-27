@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
     ArrowLeftRight,
     CircleUserRound,
@@ -12,6 +12,8 @@ import {
     type LucideIcon,
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
+import { apiGet, ID_USUARIO } from '../services/api'
+import type { Usuario } from '../types/finanzas'
 import '../layout.css'
 
 const CLAVE_SIDEBAR = 'sidebar-abierta'
@@ -40,8 +42,31 @@ function leerEstadoInicial(): boolean {
     }
 }
 
+function obtenerIniciales(nombre: string): string {
+    const palabras = nombre.trim().split(/\s+/).filter(Boolean)
+    if (palabras.length === 0) return 'US'
+    const primera = palabras[0].charAt(0)
+    const ultima = palabras.length > 1 ? palabras[palabras.length - 1].charAt(0) : ''
+    return `${primera}${ultima}`.toUpperCase()
+}
+
 export default function Layout() {
     const [abierta, setAbierta] = useState(leerEstadoInicial)
+    const [usuario, setUsuario] = useState<Usuario | null>(null)
+
+    useEffect(() => {
+        let activo = true
+        apiGet<Usuario>(`/api/users/${ID_USUARIO}`)
+            .then((datos) => {
+                if (activo) setUsuario(datos)
+            })
+            .catch(() => {
+                // Si la API falla, la barra muestra el saludo sin nombre.
+            })
+        return () => {
+            activo = false
+        }
+    }, [])
 
     const alternar = () => {
         const nuevoEstado = !abierta
@@ -53,10 +78,25 @@ export default function Layout() {
         }
     }
 
+    const nombre = usuario?.nombre.trim() ?? ''
+    const iniciales = nombre ? obtenerIniciales(nombre) : 'US'
+
     return (
         <aside className={`sidebar-card${abierta ? '' : ' colapsada'}`}>
             <div className="sidebar-header">
-                <h1>Bienvenido</h1>
+                <div className="sidebar-usuario" title={nombre || undefined}>
+                    <span className="sidebar-avatar" aria-hidden="true">
+                        {iniciales}
+                    </span>
+                    {nombre ? (
+                        <div className="sidebar-saludo">
+                            <span className="sidebar-saludo-etiqueta">Bienvenido,</span>
+                            <h1>{nombre}</h1>
+                        </div>
+                    ) : (
+                        <h1>Bienvenido</h1>
+                    )}
+                </div>
                 <button
                     type="button"
                     className="sidebar-toggle"

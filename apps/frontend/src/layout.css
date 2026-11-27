@@ -50,8 +50,73 @@
   white-space: nowrap;
 }
 
+.sidebar-card.colapsada .sidebar-saludo,
 .sidebar-card.colapsada h1 {
-  display: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sidebar-usuario {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.sidebar-usuario h1 {
+  min-width: 0;
+}
+
+.sidebar-saludo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.sidebar-saludo-etiqueta {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
+
+.sidebar-saludo h1 {
+  font-size: 0.95rem;
+}
+
+.sidebar-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+.sidebar-card.colapsada .sidebar-usuario {
+  flex: none;
+  justify-content: center;
+  width: 100%;
+}
+
+.sidebar-card.colapsada .sidebar-avatar {
+  width: 42px;
+  height: 42px;
+  font-size: 0.85rem;
 }
 
 .sidebar-toggle {
