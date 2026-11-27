@@ -60,9 +60,10 @@ Documentación específica:
 │       ├── public/           # imágenes y favicon
 │       └── src/
 │           ├── App.tsx       # rutas de la SPA
+│           ├── context/      # AuthProvider y useAuth
 │           ├── pages/        # Inicio, Mi dinero, etc.
 │           ├── components/   # GraficoTorta
-│           ├── services/     # cliente HTTP
+│           ├── services/     # cliente HTTP y auth
 │           ├── types/
 │           ├── utils/
 │           └── data/
@@ -105,7 +106,7 @@ Completá `.env` con el host, el puerto, el nombre de la base, el usuario y la c
 
 En Supabase, creá un proyecto o usá uno existente y abrí el SQL Editor. Ejecutá `apps/db/schema.sql`. Si querés datos de ejemplo, ejecutá también `apps/db/seeds.sql`. Si usás `psql`, podés correr los mismos archivos con los datos de conexión que pusiste en `.env`.
 
-`seeds.sql` crea el usuario `santiago@test.com`, tres billeteras, una tarjeta, tres suscripciones, tres boletas y cinco movimientos.
+`seeds.sql` crea el usuario `santiago@test.com` (contraseña `Demo1234`), tres billeteras, una tarjeta, tres suscripciones, tres boletas y cinco movimientos. Si la base ya existía antes de incorporar el login, ejecutá también `apps/db/migrations/001_auth.sql`; el `schema.sql` actual ya incluye las tablas de autenticación.
 
 ### 4. Levantar la aplicación
 
@@ -138,6 +139,7 @@ El backend carga el `.env` de la raíz del repositorio. La conexión usa SSL y u
 | `DB_PASSWORD` | Contraseña de PostgreSQL | `tu-password-de-supabase` |
 | `JWT_SECRET` | Secreto para firmar tokens JWT | *(aleatorio)* |
 | `JWT_EXPIRES_IN` | Vigencia del token JWT | `7d` |
+| `PASSWORD_SALT_ROUNDS` | Rondas de bcrypt para hashear contraseñas | `10` |
 | `RESET_TOKEN_TTL_MIN` | Vigencia del enlace de recuperación (min) | `30` |
 | `FRONTEND_URL` | URL del frontend (para enlaces de reset) | `http://localhost:5173` |
 
@@ -161,6 +163,7 @@ Cada aplicación tiene `dev`, `build`, `lint`, `typecheck` y `test`. El backend 
 
 | Prefijo | Router |
 | --- | --- |
+| `/api/auth` | `authRoutes` |
 | `/api/users` | `userRoutes` |
 | `/api/transactions` | `transactionRoutes` |
 | `/api/v1/billeteras` y `/api/billetera` | `billeteraRoutes` |
@@ -206,7 +209,8 @@ Reglas generales:
 
 | Modelo | Tabla | Campos principales |
 | --- | --- | --- |
-| `User` | `Usuarios` | `id`, `nombre`, `email` (único), `telefono`, `rol` (`usuario`/`admin`), `activo`, timestamps |
+| `User` | `Usuarios` | `id`, `nombre`, `email` (único), `password_hash` (nullable), `telefono`, `rol` (`usuario`/`admin`), `activo`, timestamps |
+| `PasswordResetToken` | `PasswordResetToken` | `id`, `idUsuario`, `tokenHash` (único, SHA-256), `expiresAt`, `usedAt`, `created_at` |
 | `Billetera` | `Billetera` | `idBilletera` (columna `id`), `idUsuario`, `nombre`, `saldo` (`DECIMAL(14,2)`), `tipo` |
 | `Transaction` | `Transaccion` | `idTransaccion` (columna `id`), `idBilletera`, `monto`, `tipo` (`ingreso`/`egreso`), `categoria`, `fecha`, `descripcion` |
 | `Tarjeta` | `Tarjeta` | `id`, `idUsuario`, `tipo` (`visa`/`mastercard`/`amex`/`otra`), `ultimosCuatro`, `titular`, `vencimiento` (`MM/YY`), `activa` |
@@ -220,6 +224,7 @@ Relaciones en la base:
 - `Tarjeta.idUsuario` → `Usuarios.id` (`ON DELETE CASCADE`).
 - `Suscripcion.idUsuario` → `Usuarios.id` (`ON DELETE CASCADE`); `Suscripcion.idTarjeta` → `Tarjeta.id` (`ON DELETE SET NULL`).
 - `Boleta.idUsuario` → `Usuarios.id` (`ON DELETE CASCADE`).
+- `PasswordResetToken.idUsuario` → `Usuarios.id` (`ON DELETE CASCADE`). Cada token es de un solo uso y vence según `RESET_TOKEN_TTL_MIN`.
 
 El diagrama E-R del esquema está en [docs/Diagrama E-R.png](docs/Diagrama%20E-R.png).
 
