@@ -56,6 +56,7 @@ Documentación específica:
 │   │   ├── schema.sql        # crea las tablas
 │   │   └── seeds.sql         # datos de prueba
 │   └── frontend/             # SPA React
+│       ├── README.md         # guía del paquete
 │       ├── public/           # imágenes y favicon
 │       └── src/
 │           ├── App.tsx       # rutas de la SPA
@@ -190,6 +191,8 @@ Relaciones en la base:
 - `Suscripcion.idUsuario` → `Usuarios.id` (`ON DELETE CASCADE`); `Suscripcion.idTarjeta` → `Tarjeta.id` (`ON DELETE SET NULL`).
 - `Boleta.idUsuario` → `Usuarios.id` (`ON DELETE CASCADE`).
 
+El diagrama E-R del esquema está en [docs/Diagrama E-R.png](docs/Diagrama%20E-R.png).
+
 Los modelos usan camelCase para las columnas y `underscored: true` para los timestamps (`created_at`, `updated_at`).
 
 ## Arquitectura del backend
@@ -227,6 +230,8 @@ SPA con React Router. Rutas definidas en `apps/frontend/src/App.tsx`:
 | `*` | 404 |
 
 Todas las páginas consumen la API a través de `apps/frontend/src/services/api.ts`. El cliente centraliza las llamadas y el manejo de errores.
+
+El detalle del paquete (scripts, estructura y cómo levantarlo solo) está en [apps/frontend/README.md](apps/frontend/README.md).
 
 ## Pruebas
 

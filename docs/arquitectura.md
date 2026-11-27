@@ -100,6 +100,8 @@ La respuesta es `{ data, total, page, limit }`. `data` son las filas de la pági
 | `Suscripcion` | `id` | `idUsuario`, `idTarjeta`, `proveedor`, `plan`, `monto`, `diaCobro`, `activa`, timestamps | `monto > 0`; `diaCobro` entre 1 y 31 |
 | `Boleta` | `id` | `idUsuario`, `tipoServicio`, `monto`, `fechaVencimiento`, `pagada`, `fechaPago`, timestamps | `tipoServicio` entre 5 valores; `monto > 0`; si `pagada = true`, `fechaPago` no puede ser null |
 
+![Diagrama E-R del esquema](Diagrama%20E-R.png)
+
 Los modelos usan camelCase para las columnas (`idUsuario`, `idBilletera`, `fechaVencimiento`, `diaCobro`) y `underscored: true` para los timestamps (`created_at`, `updated_at`). Las claves primarias se llaman `id` en `User`, `Tarjeta` y `Suscripcion`; `idBilletera`, `idTransaccion` y `idBoleta` en los demás, mapeadas a la columna `id`.
 
 ### 3.2 Relaciones
@@ -203,6 +205,8 @@ Cada página pide lo que necesita al montarse y maneja su propio `loading` y `er
 - `utils/resumenGastos.ts`: períodos, filtrado por mes, agrupación de egresos por categoría y por billetera, totales y construcción de porciones. Suma en centavos.
 - `components/GraficoTorta.tsx`: dona SVG de 120×120, radio 45, grosor 18, leyenda con porcentaje y monto.
 - `data/boletas.ts`: metadatos e iconos de los servicios de facturación.
+
+El detalle del paquete está en [apps/frontend/README.md](../apps/frontend/README.md).
 
 ## 6. Pruebas y CI
 
