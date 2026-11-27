@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import './midinero.css';
+import GraficoTorta from '../components/GraficoTorta';
 import {
   apiDelete,
   apiGet,
@@ -9,8 +10,19 @@ import {
 } from '../services/api';
 import type { Billetera, ListaPaginada, Transaccion } from '../types/finanzas';
 import { formatearFecha } from '../utils/formato';
+import {
+  agruparEgresosPorBilletera,
+  agruparEgresosPorCategoria,
+  COLORES_BALANCE,
+  construirPorciones,
+  filtrarPorPeriodo,
+  PALETA_GRAFICO,
+  totalesIngresoEgreso,
+} from '../utils/resumenGastos';
+import type { DatoGrafico, PeriodoGrafico } from '../utils/resumenGastos';
 
 type Filtro = 'todo' | 'ingreso' | 'gasto';
+type VistaGrafico = 'categoria' | 'balance' | 'cuenta';
 
 interface FormBilletera {
   nombre: string;
@@ -40,6 +52,9 @@ function MiDinero() {
   const [billeteras, setBilleteras] = useState<Billetera[]>([]);
   const [movimientos, setMovimientos] = useState<Transaccion[]>([]);
   const [filtro, setFiltro] = useState<Filtro>('todo');
+  const [vistaGrafico, setVistaGrafico] = useState<VistaGrafico>('categoria');
+  const [periodoGrafico, setPeriodoGrafico] =
+    useState<PeriodoGrafico>('mesActual');
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -94,6 +109,41 @@ function MiDinero() {
       ? movimiento.tipo === 'ingreso'
       : movimiento.tipo === 'egreso';
   });
+
+  const transaccionesPeriodo = useMemo(
+    () => filtrarPorPeriodo(movimientos, periodoGrafico),
+    [movimientos, periodoGrafico],
+  );
+
+  const resumenGrafico = useMemo(() => {
+    let datos: DatoGrafico[];
+    let colores: readonly string[];
+    let vacio: string;
+
+    if (vistaGrafico === 'balance') {
+      const { ingresos, egresos } = totalesIngresoEgreso(transaccionesPeriodo);
+      datos = [
+        { etiqueta: 'Ingresos', monto: ingresos },
+        { etiqueta: 'Gastos', monto: egresos },
+      ];
+      colores = COLORES_BALANCE;
+      vacio = 'No hay movimientos en el período.';
+    } else {
+      datos =
+        vistaGrafico === 'categoria'
+          ? agruparEgresosPorCategoria(transaccionesPeriodo)
+          : agruparEgresosPorBilletera(transaccionesPeriodo, billeteras);
+      colores = PALETA_GRAFICO;
+      vacio = 'No hay gastos en el período.';
+    }
+
+    const porciones = construirPorciones(datos, colores);
+    return {
+      porciones,
+      total: porciones.reduce((acc, porcion) => acc + porcion.monto, 0),
+      vacio,
+    };
+  }, [billeteras, transaccionesPeriodo, vistaGrafico]);
 
   function abrirCrear() {
     setEditando(null);
@@ -282,6 +332,67 @@ function MiDinero() {
                 );
               })
             )}
+          </section>
+
+          <section
+            className="midinero-seccion midinero-graficos"
+            aria-labelledby="titulo-graficos"
+          >
+            <div className="midinero-graficos-header">
+              <h2 id="titulo-graficos">Resumen del período</h2>
+              <label className="midinero-periodo">
+                <span>Período</span>
+                <select
+                  value={periodoGrafico}
+                  onChange={(evento) =>
+                    setPeriodoGrafico(
+                      evento.target.value as PeriodoGrafico,
+                    )
+                  }
+                >
+                  <option value="mesActual">Este mes</option>
+                  <option value="mesAnterior">Mes anterior</option>
+                  <option value="ultimos3Meses">Últimos 3 meses</option>
+                </select>
+              </label>
+            </div>
+
+            <div
+              className="midinero-graficos-tabs"
+              role="group"
+              aria-label="Tipo de gráfico"
+            >
+              <button
+                type="button"
+                className={vistaGrafico === 'categoria' ? 'activo' : ''}
+                aria-pressed={vistaGrafico === 'categoria'}
+                onClick={() => setVistaGrafico('categoria')}
+              >
+                Categorías
+              </button>
+              <button
+                type="button"
+                className={vistaGrafico === 'balance' ? 'activo' : ''}
+                aria-pressed={vistaGrafico === 'balance'}
+                onClick={() => setVistaGrafico('balance')}
+              >
+                Ingresos vs gastos
+              </button>
+              <button
+                type="button"
+                className={vistaGrafico === 'cuenta' ? 'activo' : ''}
+                aria-pressed={vistaGrafico === 'cuenta'}
+                onClick={() => setVistaGrafico('cuenta')}
+              >
+                Cuentas
+              </button>
+            </div>
+
+            <GraficoTorta
+              porciones={resumenGrafico.porciones}
+              total={resumenGrafico.total}
+              vacio={resumenGrafico.vacio}
+            />
           </section>
         </>
       )}
