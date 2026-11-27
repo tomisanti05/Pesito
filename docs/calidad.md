@@ -10,7 +10,7 @@ Para cada regla se definieron la entrada, el resultado esperado y el tipo de cas
 - **Límite:** la frontera donde cambia la decisión (por ejemplo, gastar exactamente el saldo disponible).
 - **Error:** una entrada inválida o un estado no permitido.
 
-No todas las reglas requieren los tres tipos: se eligieron los casos que aportan evidencia sobre el comportamiento crítico. Los tests siguen la estructura Arrange → Act → Assert, se ejecutan con Vitest y usan mocks de los modelos, por lo que no dependen de la base de datos y son deterministas.
+No todas las reglas requieren los tres tipos: se eligieron los casos que aportan evidencia sobre el comportamiento crítico. Los tests están organizados con el esquema Arrange → Act → Assert, se ejecutan con Vitest, no dependen de la base de datos y son deterministas.
 
 ## Casos seleccionados y justificados
 
@@ -37,7 +37,7 @@ No todas las reglas requieren los tres tipos: se eligieron los casos que aportan
 | Registro hashea la contraseña y devuelve token | Normal | Asegura que la contraseña nunca se guarde en texto plano. |
 | Recuperación con email inexistente responde de forma genérica | Error | Evita filtrar qué correos están registrados. |
 | Token de recuperación hasheado y link en desarrollo | Normal | El token se almacena de forma segura y el flujo es utilizable. |
-| Token usado o vencido | Límite temporal | El token es de un solo uso y tiene vencimiento. |
+| Token ya usado | Error | El token es de un solo uso; el servicio además valida el vencimiento. |
 | Restablecer contraseña consume el token | Normal | Cierra el flujo de recuperación. |
 | Cambio de contraseña con la actual incorrecta | Error | Valida la identidad antes de cambiar la credencial. |
 | Cambio de contraseña con la actual correcta | Normal | Actualiza la credencial y confirma el camino exitoso. |
@@ -85,14 +85,14 @@ No todas las reglas requieren los tres tipos: se eligieron los casos que aportan
 | --- | --- | --- |
 | Precisión monetaria con `decimal.js` | Evita errores de punto flotante; PostgreSQL usa `DECIMAL(14,2)` y la aplicación conserva los valores como strings. | `billeteraService.ts`, `docs/decisiones-diseño.md` §4, test de `0,10 + 0,20`. |
 | Registro atómico de movimientos | El saldo y el comprobante se guardan en la misma transacción; si falla un paso, se revierte todo. | `transactionServices.ts`, `docs/decisiones-diseño.md` §2. |
-| Códigos de error explícitos | Las respuestas distinguen validación (400), recurso inexistente (404) y conflicto (409). | `utils/httpError.ts`, tests de billeteras, usuarios y autenticación. |
+| Errores con códigos HTTP explícitos | Las respuestas distinguen validación (400), autenticación (401/403), recurso inexistente (404) y conflicto (409). | `utils/httpError.ts` en auth/usuarios y códigos explícitos en el resto de los servicios; los tests cubren 400, 401, 403 y 409. |
 | Paginación y orden centralizados | Una sola implementación de `page`, `limit` y `offset`, con tope de 100 y lista blanca de campos de orden. | `utils/pagination.ts`, tests de listados. |
 | Baja lógica de usuarios | Conserva el historial y evita el borrado físico. | `userServices.ts`, test “da de baja al usuario sin borrarlo”. |
-| Normalización de datos de entrada | Emails en minúsculas, teléfonos y últimos cuatro sin espacios; menos duplicados y datos más consistentes. | Tests de usuarios y tarjetas. |
+| Normalización de datos de entrada | Emails en minúsculas, teléfonos sin espacios al inicio y al final, y últimos cuatro sin espacios; menos duplicados y datos más consistentes. | Tests de usuarios y tarjetas. |
 | Calidad automatizada | ESLint con `typescript-eslint`, TypeScript en modo `strict`, `pnpm check` y CI en cada push y pull request. | `apps/*/eslint.config.js`, `apps/backend/tsconfig.json`, `.github/workflows/ci.yml`. |
-| Integración mediante Pull Requests | Cada cambio se integra por PR y CI valida lint, tipos y tests antes del merge. | Historial de PRs del repositorio. |
+| Integración mediante Pull Requests | Se usan PRs para integrar ramas de trabajo y CI se ejecuta en cada push y PR. | Historial de PRs del repositorio (por ejemplo #35, #37, #45, #46 y #48). |
 | Configuración de la suite de pruebas | Vitest ejecuta las pruebas desde `src` y excluye `dist`, de modo que cada test se ejecuta una sola vez. | `apps/backend/vitest.config.ts`; la suite reporta 4 archivos y 35 tests en backend. |
-| Entorno reproducible | Node 24 y pnpm 12.18.0 fijados en `engines` y `packageManager`; CI usa las mismas versiones. | `package.json`, `.github/workflows/ci.yml`. |
+| Entorno reproducible | Node 24 o superior declarado en `engines` y pnpm 12.18.0 en `packageManager`; CI usa Node 24 y pnpm 12.18.0. | `package.json`, `.github/workflows/ci.yml`. |
 
 ## Verificación automatizada
 
