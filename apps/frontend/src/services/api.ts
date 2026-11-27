@@ -3,10 +3,6 @@ const API_V1 = "/api/v1";
 // Clave bajo la que se guarda el token JWT en localStorage.
 const CLAVE_TOKEN = "sgf_token";
 
-// Usuario fijo mientras el login sea mock.
-// @deprecated usar el usuario de AuthContext.
-export const ID_USUARIO = 1;
-
 export class ApiError extends Error {
   readonly status: number;
 

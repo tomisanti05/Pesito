@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import './inicio.css';
-import { apiGet, ID_USUARIO } from '../services/api';
+import { apiGet } from '../services/api';
+import { useAuth } from '../context/useAuth';
 import type {
   Billetera,
   ListaPaginada,
   Transaccion,
-  Usuario,
 } from '../types/finanzas';
 import { formatearFecha } from '../utils/formato';
 
@@ -22,7 +22,7 @@ function mensajeDeError(error: unknown): string {
 }
 
 function Inicio() {
-  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const { usuario } = useAuth();
   const [billeteras, setBilleteras] = useState<Billetera[]>([]);
   const [transacciones, setTransacciones] = useState<Transaccion[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -30,29 +30,17 @@ function Inicio() {
 
   const cargarDatos = useCallback(async () => {
     try {
-      const [usuarioApi, listaBilleteras, todasLasTransacciones] =
+      // El backend ya filtra por el usuario autenticado (token JWT).
+      const [listaBilleteras, todasLasTransacciones] =
         await Promise.all([
-          apiGet<Usuario>(`/api/users/${ID_USUARIO}`),
           apiGet<ListaPaginada<Billetera>>(
             '/billeteras?limit=100&sortBy=nombre&order=asc',
           ),
           apiGet<Transaccion[]>('/api/transactions'),
         ]);
 
-      const billeterasUsuario = listaBilleteras.data.filter(
-        (billetera) => billetera.idUsuario === ID_USUARIO,
-      );
-      const idsBilleteras = new Set(
-        billeterasUsuario.map((billetera) => billetera.idBilletera),
-      );
-
-      setUsuario(usuarioApi);
-      setBilleteras(billeterasUsuario);
-      setTransacciones(
-        todasLasTransacciones.filter((transaccion) =>
-          idsBilleteras.has(transaccion.idBilletera),
-        ),
-      );
+      setBilleteras(listaBilleteras.data);
+      setTransacciones(todasLasTransacciones);
       setError(null);
     } catch (err) {
       setError(mensajeDeError(err));

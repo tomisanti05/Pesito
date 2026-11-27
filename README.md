@@ -5,10 +5,10 @@ Aplicacion web para el control de ingresos, gastos, billeteras y presupuestos.
 Monorepo con un backend (API REST) y un frontend (SPA), desplegado como un unico
 proyecto en Vercel.
 
-> Estado actual: el backend expone una API REST funcional contra PostgreSQL (usuarios,
-> billeteras y transacciones). El frontend esta implementado como interfaz, pero aun
-> consume **datos mock** y no esta conectado a la API (`apps/frontend/src/services/api.ts`
-> esta vacio).
+> Estado actual: el backend expone una API REST funcional contra PostgreSQL con
+> **autenticacion JWT** (registro, login, recuperacion y cambio de contrasena). Todas
+> las rutas de recursos estan protegidas y con ownership por usuario. El frontend
+> consume la API real con el token guardado en `localStorage`.
 
 ## Autores
 
@@ -98,6 +98,10 @@ El backend carga el `.env` ubicado en la **raiz** del repositorio
 | `DB_NAME`     | Nombre de la base de datos           | `finanzas_db`  |
 | `DB_USER`     | Usuario de PostgreSQL                | `postgres`     |
 | `DB_PASSWORD` | Contrasena de PostgreSQL             | *(vacio)*      |
+| `JWT_SECRET`  | Secreto para firmar tokens JWT       | *(aleatorio)*  |
+| `JWT_EXPIRES_IN` | Vigencia del token JWT            | `7d`           |
+| `RESET_TOKEN_TTL_MIN` | Vigencia del enlace de recuperacion (min) | `30` |
+| `FRONTEND_URL` | URL del frontend (para enlaces de reset) | `http://localhost:5173` |
 
 > La conexion usa SSL con `rejectUnauthorized: false`. Para entornos de produccion
 > (por ejemplo un proveedor gestionado) esto es correcto; tenlo en cuenta si
@@ -136,7 +140,40 @@ Todas las rutas se montan bajo `/api` y comparten conexion a la base de datos.
 El formato de error es `{ "mensaje": "..." }` (usuarios) o `{ "error": "..." }`
 (billeteras y transacciones).
 
-### Usuarios (`/api/users`)
+### Autenticacion (`/api/auth`)
+
+| Metodo | Ruta                        | Descripcion                                        |
+| ------ | --------------------------- | -------------------------------------------------- |
+| POST   | `/api/auth/register`        | Registrar usuario (devuelve token + usuario)       |
+| POST   | `/api/auth/login`           | Iniciar sesion (devuelve token + usuario)          |
+| POST   | `/api/auth/forgot-password` | Enviar enlace de recuperacion                      |
+| POST   | `/api/auth/reset-password`  | Restablecer contrasena con el token del enlace     |
+| GET    | `/api/auth/me`              | Perfil del usuario autenticado **[auth]**          |
+| POST   | `/api/auth/change-password` | Cambiar contrasena (con la actual) **[auth]**     |
+
+- Las contrasenas se hashean con **bcryptjs** (nunca se guardan en claro).
+- El token JWT se envia como `Authorization: Bearer <token>`.
+- El token de recuperacion se guarda en la base como **hash SHA-256**; el crudo
+  viaja solo en el enlace `/reset-password?token=...`. En desarrollo el backend
+  ademas devuelve/imprime el enlace en la respuesta del `forgot-password`.
+- Los recursos del usuario demo (`santiago@test.com`) tienen la contrasena `Demo1234`.
+
+**Proteccion de rutas**: todos los endpoints de recursos (`/api/users`,
+`/api/transactions`, `/api/v1/billeteras`, `/api/v1/suscripciones`,
+`/api/v1/boletas`, `/api/v1/tarjetas`) exigen token. Un usuario normal solo ve y
+modifica **sus propios** registros; el rol `admin` puede administrar todo.
+Listar y crear usuarios queda restringido a admins (el registro publico vive en
+`/api/auth/register`).
+
+Ejemplo de login:
+
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "santiago@test.com", "password": "Demo1234"}'
+```
+
+### Usuarios (`/api/users`) **[admin]**
 
 | Metodo | Ruta            | Descripcion                                      |
 | ------ | --------------- | ------------------------------------------------ |
@@ -243,19 +280,38 @@ Detalles relevantes:
 
 SPA con React Router. Rutas definidas en `apps/frontend/src/App.tsx`:
 
-| Ruta             | Pagina          |
-| ---------------- | --------------- |
-| `/`              | redirige a `/inicio` |
-| `/inicio`        | Inicio          |
-| `/midinero`      | Mi dinero       |
-| `/facturacion`   | Facturacion     |
-| `/tarjetas`      | Tarjetas        |
-| `/subscripciones`| Subscripciones  |
-| `/miCuenta`      | Mi cuenta       |
-| `*`              | 404             |
+| Ruta                | Pagina          | Acceso            |
+| ------------------- | --------------- | ----------------- |
+| `/`                 | redirige a `/inicio` | -             |
+| `/login`            | Login           | publico          |
+| `/register`         | Registro        | publico          |
+| `/forgot-password`  | Recuperar contrasena | publico     |
+| `/reset-password`   | Nueva contrasena | publico          |
+| `/inicio`           | Inicio          | requiere sesion  |
+| `/midinero`         | Mi dinero       | requiere sesion  |
+| `/transacciones`    | Transacciones   | requiere sesion  |
+| `/facturacion`      | Facturacion     | requiere sesion  |
+| `/tarjetas`         | Tarjetas        | requiere sesion  |
+| `/subscripciones`   | Subscripciones  | requiere sesion  |
+| `/miCuenta`         | Mi cuenta       | requiere sesion  |
+| `*`                 | 404             | -                 |
 
-Actualmente las paginas usan datos de ejemplo en memoria. La integracion con el backend
-debe implementarse en `apps/frontend/src/services/api.ts`.
+El token JWT se guarda en `localStorage` y el cliente HTTP
+(`apps/frontend/src/services/api.ts`) lo agrega automaticamente como header
+`Authorization: Bearer <token>`. Si la API responde 401, el token se descarta.
+`AuthProvider` (`apps/frontend/src/context/AuthContext.tsx`) expone el usuario
+autenticado via `useAuth()`, y las rutas privadas estan envueltas en
+`RutaProtegida` (redirige a `/login` si no hay sesion). En "Mi cuenta" se puede
+cambiar la contrasena iniciando sesion con la actual.
+
+## Migraciones
+
+El esquema base vive en `apps/db/schema.sql` y los datos demo en `apps/db/seeds.sql`.
+Las migraciones incrementales estan en `apps/db/migrations/` y se aplican a mano en el
+SQL Editor (por ejemplo, Supabase):
+
+- `001_auth.sql`: agrega `password_hash` a `Usuarios` y crea la tabla
+  `PasswordResetToken`. **Requerida para usar el login.**
 
 ## Deploy en Vercel
 
@@ -278,12 +334,13 @@ pnpm deploy
 
 ## Pendientes / Roadmap
 
-- [ ] Conectar el frontend a la API real (`services/api.ts`).
+- [x] Conectar el frontend a la API real (`services/api.ts`).
+- [x] Autenticacion y autorizacion (JWT + rol `admin` con uso real).
 - [ ] Unificar los nombres de tabla: `Transaction` referencia `Billeteras` mientras que
       `Billetera` define la tabla `wallets`.
-- [ ] Agregar migraciones/sincronizacion de esquema (hoy los modelos no llaman a `sync`).
-- [ ] Autenticacion y autorizacion (existe el rol `admin` en `User` pero sin uso).
-- [ ] Tests automatizados (no hay configuracion de testing en el repo).
+- [ ] Enviar el email de recuperacion por un servicio real (hoy solo se registra el
+      enlace en desarrollo).
+- [ ] Tests automatizados del frontend (el backend ya tiene Vitest configurado).
 - [ ] Revisar `.gitignore`: `.env*` tambien ignora `.env.example`.
 
 

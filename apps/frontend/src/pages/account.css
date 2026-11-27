@@ -26,6 +26,10 @@
   align-items: start;
 }
 
+.account-password {
+  grid-column: 1 / -1;
+}
+
 .account-card {
   min-width: 0;
   background-color: var(--color-bg-surface);

@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import "./account.css";
 import { Mail, Pencil, Phone } from "lucide-react";
-import { apiGet, apiPatch, ID_USUARIO } from "../services/api";
+import { apiPatch } from "../services/api";
+import { changePassword } from "../services/auth";
+import { useAuth } from "../context/useAuth";
 import type { RolUsuario, Usuario } from "../types/finanzas";
 
 interface FormUsuario {
@@ -9,6 +11,18 @@ interface FormUsuario {
   email: string;
   telefono: string;
 }
+
+interface FormPassword {
+  passwordActual: string;
+  passwordNueva: string;
+  passwordRepetir: string;
+}
+
+const FORM_PASSWORD_VACIO: FormPassword = {
+  passwordActual: "",
+  passwordNueva: "",
+  passwordRepetir: "",
+};
 
 function mensajeDeError(error: unknown): string {
   return error instanceof Error ? error.message : "Ocurrió un error inesperado.";
@@ -39,8 +53,7 @@ function formatearFechaAlta(fecha: string): string {
 }
 
 export default function Account() {
-  const [usuario, setUsuario] = useState<Usuario | null>(null);
-  const [cargando, setCargando] = useState(true);
+  const { usuario, recargar } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [exito, setExito] = useState<string | null>(null);
 
@@ -52,29 +65,12 @@ export default function Account() {
   });
   const [guardando, setGuardando] = useState(false);
 
-  const cargarUsuario = useCallback(async () => {
-    try {
-      const datos = await apiGet<Usuario>(`/api/users/${ID_USUARIO}`);
-      setUsuario(datos);
-      setError(null);
-    } catch (err) {
-      setError(mensajeDeError(err));
-    } finally {
-      setCargando(false);
-    }
-  }, []);
-
-  const recargar = useCallback(async () => {
-    setCargando(true);
-    setError(null);
-    await cargarUsuario();
-  }, [cargarUsuario]);
-
-  useEffect(() => {
-    // El estado se actualiza después de los await, no de forma sincrónica.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void cargarUsuario();
-  }, [cargarUsuario]);
+  const [formPassword, setFormPassword] = useState<FormPassword>(
+    FORM_PASSWORD_VACIO,
+  );
+  const [guardandoPassword, setGuardandoPassword] = useState(false);
+  const [errorPassword, setErrorPassword] = useState<string | null>(null);
+  const [exitoPassword, setExitoPassword] = useState<string | null>(null);
 
   useEffect(() => {
     if (!modalAbierto) return;
@@ -113,7 +109,7 @@ export default function Account() {
     setExito(null);
 
     try {
-      const actualizado = await apiPatch<Usuario>(
+      await apiPatch<Usuario>(
         `/api/users/${usuario.id}`,
         {
           nombre: form.nombre.trim(),
@@ -121,13 +117,39 @@ export default function Account() {
           telefono: form.telefono.trim() || null,
         },
       );
-      setUsuario(actualizado);
       setModalAbierto(false);
       setExito("Datos actualizados.");
+      await recargar();
     } catch (err) {
       setError(mensajeDeError(err));
     } finally {
       setGuardando(false);
+    }
+  }
+
+  async function guardarPassword(evento: FormEvent) {
+    evento.preventDefault();
+
+    if (formPassword.passwordNueva !== formPassword.passwordRepetir) {
+      setErrorPassword("Las contraseñas nuevas no coinciden.");
+      return;
+    }
+
+    setGuardandoPassword(true);
+    setErrorPassword(null);
+    setExitoPassword(null);
+
+    try {
+      const respuesta = await changePassword(
+        formPassword.passwordActual,
+        formPassword.passwordNueva,
+      );
+      setExitoPassword(respuesta.mensaje);
+      setFormPassword(FORM_PASSWORD_VACIO);
+    } catch (err) {
+      setErrorPassword(mensajeDeError(err));
+    } finally {
+      setGuardandoPassword(false);
     }
   }
 
@@ -157,10 +179,8 @@ export default function Account() {
         </div>
       )}
 
-      {cargando ? (
-        <p className="account-estado">Cargando tus datos…</p>
-      ) : !usuario ? (
-        !error && <p className="account-estado">No pudimos cargar tu cuenta.</p>
+      {!usuario ? (
+        <p className="account-estado">No pudimos cargar tu cuenta.</p>
       ) : (
         <div className="account-grid">
           <section className="account-card account-perfil">
@@ -228,6 +248,83 @@ export default function Account() {
                 </span>
               </div>
             </div>
+          </section>
+
+          <section className="account-card account-password">
+            <h2>Cambiar contraseña</h2>
+
+            {errorPassword && (
+              <div className="account-error" role="alert">
+                {errorPassword}
+              </div>
+            )}
+            {exitoPassword && (
+              <div className="account-exito" role="status">
+                {exitoPassword}
+              </div>
+            )}
+
+            <form onSubmit={(evento) => void guardarPassword(evento)}>
+              <label className="campo">
+                <span>Contraseña actual</span>
+                <input
+                  type="password"
+                  value={formPassword.passwordActual}
+                  onChange={(evento) =>
+                    setFormPassword((actual) => ({
+                      ...actual,
+                      passwordActual: evento.target.value,
+                    }))
+                  }
+                  required
+                  autoComplete="current-password"
+                />
+              </label>
+
+              <label className="campo">
+                <span>Contraseña nueva</span>
+                <input
+                  type="password"
+                  minLength={8}
+                  value={formPassword.passwordNueva}
+                  onChange={(evento) =>
+                    setFormPassword((actual) => ({
+                      ...actual,
+                      passwordNueva: evento.target.value,
+                    }))
+                  }
+                  required
+                  autoComplete="new-password"
+                />
+              </label>
+
+              <label className="campo">
+                <span>Repetir contraseña nueva</span>
+                <input
+                  type="password"
+                  minLength={8}
+                  value={formPassword.passwordRepetir}
+                  onChange={(evento) =>
+                    setFormPassword((actual) => ({
+                      ...actual,
+                      passwordRepetir: evento.target.value,
+                    }))
+                  }
+                  required
+                  autoComplete="new-password"
+                />
+              </label>
+
+              <div className="modal-acciones">
+                <button
+                  type="submit"
+                  className="btn-primario"
+                  disabled={guardandoPassword}
+                >
+                  {guardandoPassword ? "Guardando…" : "Actualizar contraseña"}
+                </button>
+              </div>
+            </form>
           </section>
         </div>
       )}
