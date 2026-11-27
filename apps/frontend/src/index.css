@@ -18,14 +18,14 @@
   --layout-content-max: 1600px;
 
   /* Neutrales (Bordes) */
-  --color-border-subtle: #f3f4f6;
+  --color-border-subtle: #e8eaee;
   --color-border-default: #e5e7eb;
 
   /* Neutrales (Tipografía e iconos) */
   --color-text-primary: #111827;
   --color-text-body: #374151;
-  --color-text-secondary: #6b7280;
-  --color-icon-muted: #9ca3af;
+  --color-text-secondary: #4b5563;
+  --color-icon-muted: #6b7280;
 
   /* Sombras */
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
