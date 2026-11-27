@@ -52,6 +52,7 @@ function obtenerIniciales(nombre: string): string {
 
 export default function Layout() {
     const [abierta, setAbierta] = useState(leerEstadoInicial)
+    const [menuMovilAbierto, setMenuMovilAbierto] = useState(false)
     const [usuario, setUsuario] = useState<Usuario | null>(null)
 
     useEffect(() => {
@@ -68,7 +69,26 @@ export default function Layout() {
         }
     }, [])
 
+    useEffect(() => {
+        if (!menuMovilAbierto) return
+        const alPresionarEscape = (evento: KeyboardEvent) => {
+            if (evento.key === 'Escape') setMenuMovilAbierto(false)
+        }
+        window.addEventListener('keydown', alPresionarEscape)
+        return () => window.removeEventListener('keydown', alPresionarEscape)
+    }, [menuMovilAbierto])
+
+    const abrirMenuMovil = () => {
+        setAbierta(true)
+        setMenuMovilAbierto(true)
+    }
+
     const alternar = () => {
+        if (window.innerWidth <= 1024) {
+            setMenuMovilAbierto(false)
+            return
+        }
+
         const nuevoEstado = !abierta
         setAbierta(nuevoEstado)
         try {
@@ -82,52 +102,84 @@ export default function Layout() {
     const iniciales = nombre ? obtenerIniciales(nombre) : 'US'
 
     return (
-        <aside className={`sidebar-card${abierta ? '' : ' colapsada'}`}>
-            <div className="sidebar-header">
-                <div className="sidebar-usuario" title={nombre || undefined}>
-                    <span className="sidebar-avatar" aria-hidden="true">
-                        {iniciales}
-                    </span>
-                    {nombre ? (
-                        <div className="sidebar-saludo">
-                            <span className="sidebar-saludo-etiqueta">Bienvenido,</span>
-                            <h1>{nombre}</h1>
-                        </div>
-                    ) : (
-                        <h1>Bienvenido</h1>
-                    )}
-                </div>
+        <>
+            <header className="barra-movil">
                 <button
                     type="button"
-                    className="sidebar-toggle"
-                    onClick={alternar}
-                    aria-expanded={abierta}
-                    aria-label={abierta ? 'Cerrar menú' : 'Abrir menú'}
-                    title={abierta ? 'Cerrar menú' : 'Abrir menú'}
+                    className="barra-movil-toggle"
+                    onClick={abrirMenuMovil}
+                    aria-controls="sidebar-principal"
+                    aria-expanded={menuMovilAbierto}
+                    aria-label="Abrir menú"
                 >
-                    {abierta ? (
-                        <PanelLeftClose size={20} aria-hidden="true" />
-                    ) : (
-                        <PanelLeftOpen size={20} aria-hidden="true" />
-                    )}
+                    <PanelLeftOpen size={20} aria-hidden="true" />
                 </button>
-            </div>
-            <nav className="sidebar-menu" aria-label="Secciones">
-                {enlaces.map(({ path, nombre, Icono }) => (
-                    <NavLink
-                        key={path}
-                        to={path}
-                        className={({ isActive }: { isActive: boolean }) =>
-                            isActive ? 'white' : 'gray'
-                        }
-                        aria-label={nombre}
-                        title={abierta ? undefined : nombre}
+                <span className="barra-movil-marca">Finanzas</span>
+            </header>
+
+            {menuMovilAbierto && (
+                <button
+                    type="button"
+                    className="sidebar-overlay"
+                    onClick={() => setMenuMovilAbierto(false)}
+                    aria-label="Cerrar menú"
+                    tabIndex={-1}
+                />
+            )}
+
+            <aside
+                id="sidebar-principal"
+                className={`sidebar-card${abierta ? '' : ' colapsada'}${
+                    menuMovilAbierto ? ' movil-abierta' : ''
+                }`}
+            >
+                <div className="sidebar-header">
+                    <div className="sidebar-usuario" title={nombre || undefined}>
+                        <span className="sidebar-avatar" aria-hidden="true">
+                            {iniciales}
+                        </span>
+                        {nombre ? (
+                            <div className="sidebar-saludo">
+                                <span className="sidebar-saludo-etiqueta">Bienvenido,</span>
+                                <h1>{nombre}</h1>
+                            </div>
+                        ) : (
+                            <h1>Bienvenido</h1>
+                        )}
+                    </div>
+                    <button
+                        type="button"
+                        className="sidebar-toggle"
+                        onClick={alternar}
+                        aria-expanded={abierta}
+                        aria-label={abierta ? 'Cerrar menú' : 'Abrir menú'}
+                        title={abierta ? 'Cerrar menú' : 'Abrir menú'}
                     >
-                        <Icono className="link-icon" size={20} aria-hidden="true" />
-                        <span className="link-name">{nombre}</span>
-                    </NavLink>
-                ))}
-            </nav>
-        </aside>
+                        {abierta ? (
+                            <PanelLeftClose size={20} aria-hidden="true" />
+                        ) : (
+                            <PanelLeftOpen size={20} aria-hidden="true" />
+                        )}
+                    </button>
+                </div>
+                <nav className="sidebar-menu" aria-label="Secciones">
+                    {enlaces.map(({ path, nombre, Icono }) => (
+                        <NavLink
+                            key={path}
+                            to={path}
+                            className={({ isActive }: { isActive: boolean }) =>
+                                isActive ? 'white' : 'gray'
+                            }
+                            aria-label={nombre}
+                            title={abierta ? undefined : nombre}
+                            onClick={() => setMenuMovilAbierto(false)}
+                        >
+                            <Icono className="link-icon" size={20} aria-hidden="true" />
+                            <span className="link-name">{nombre}</span>
+                        </NavLink>
+                    ))}
+                </nav>
+            </aside>
+        </>
     )
 }
