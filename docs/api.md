@@ -10,6 +10,7 @@ En desarrollo el backend escucha en `http://localhost:3000` y Vite proxya `/api`
 
 | Módulo | Prefijo |
 | --- | --- |
+| Autenticación | `/api/auth` |
 | Usuarios | `/api/users` |
 | Transacciones | `/api/transactions` |
 | Billeteras | `/api/v1/billeteras` y `/api/billetera` |
@@ -17,7 +18,9 @@ En desarrollo el backend escucha en `http://localhost:3000` y Vite proxya `/api`
 | Boletas | `/api/v1/boletas` |
 | Tarjetas | `/api/v1/tarjetas` |
 
-Los alias apuntan al mismo router: `GET /api/billetera` y `GET /api/v1/billeteras` devuelven lo mismo. Lo mismo pasa con suscripciones. El frontend usa `ID_USUARIO = 1` para los flujos del MVP.
+Los alias apuntan al mismo router: `GET /api/billetera` y `GET /api/v1/billeteras` devuelven lo mismo. Lo mismo pasa con suscripciones.
+
+Todas las rutas de recursos exigen un JWT válido. El usuario autenticado se deduce del token: el frontend ya no envía `ID_USUARIO`. En los listados que lo admiten, un `admin` puede filtrar por `idUsuario`; un usuario común solo ve sus propios registros.
 
 ### 1.2 Formato
 
@@ -45,14 +48,78 @@ La respuesta es `{ data, total, page, limit }`. Transacciones y boletas devuelve
 
 | Módulos | Clave |
 | --- | --- |
-| Usuarios, billeteras, boletas, suscripciones y tarjetas | `{ mensaje }` |
+| Autenticación, usuarios, billeteras, boletas, suscripciones y tarjetas | `{ mensaje }` |
 | Transacciones | `{ error }` |
 
 En general, los errores de validación de los services responden 400, los recursos inexistentes 404 y los conflictos 409. Los `POST` exitosos responden 201 y el resto de las operaciones 200. El middleware final de `app.ts` responde `500 { "mensaje": "Error interno del servidor." }` si un error no fue capturado.
 
-## 2. Usuarios
+La autenticación agrega dos códigos:
 
-Base: `/api/users`.
+- `401`: falta el header `Authorization`, el token es inválido o expiró, o las credenciales de login son incorrectas.
+- `403`: la cuenta está deshabilitada o el usuario no tiene permisos para la operación.
+
+## 2. Autenticación
+
+Base: `/api/auth`. Los errores usan `{ mensaje }`.
+
+| Método | Ruta | Descripción | Éxito |
+| --- | --- | --- | --- |
+| `POST` | `/api/auth/register` | Registrar usuario | `201` `{ token, usuario }` |
+| `POST` | `/api/auth/login` | Iniciar sesión | `200` `{ token, usuario }` |
+| `POST` | `/api/auth/forgot-password` | Solicitar enlace de recuperación | `200` `{ mensaje, resetUrl? }` |
+| `POST` | `/api/auth/reset-password` | Restablecer contraseña | `200` `{ mensaje }` |
+| `GET` | `/api/auth/me` | Perfil del usuario autenticado **[auth]** | `200` usuario |
+| `POST` | `/api/auth/change-password` | Cambiar contraseña **[auth]** | `200` `{ mensaje }` |
+
+Las contraseñas se hashean con **bcryptjs** y nunca se guardan ni se devuelven en claro. El token es un JWT firmado con `JWT_SECRET`; el payload lleva el `rol` y el `id` del usuario en `sub`, y vence según `JWT_EXPIRES_IN` (7 días por defecto).
+
+### 2.1 Registro
+
+- `nombre`: obligatorio; máximo 100, solo letras y espacios simples.
+- `email`: obligatorio, máximo 150, formato válido, se normaliza a minúsculas. Es único.
+- `password`: obligatorio, entre 8 y 72 caracteres (el máximo se mide en bytes UTF-8).
+- `telefono`: opcional, máximo 30.
+
+Crea el usuario con `rol: "usuario"` y `activo: true` y responde `201 { token, usuario }`. Si el email ya existe: `409 { "mensaje": "Ya existe un usuario con ese email." }`.
+
+### 2.2 Login
+
+Body: `{ "email": "...", "password": "..." }`. Devuelve `200 { token, usuario }`.
+
+- Credenciales inválidas o usuario sin contraseña configurada: `401 { "mensaje": "Email o contraseña incorrectos." }`.
+- Cuenta deshabilitada: `403 { "mensaje": "La cuenta está deshabilitada." }`.
+
+### 2.3 Recuperación de contraseña
+
+`POST /api/auth/forgot-password` recibe `{ email }` y responde siempre `200` con el mismo mensaje, exista o no la cuenta:
+
+```json
+{ "mensaje": "Si el email está registrado, te enviamos un enlace para restablecer la contraseña." }
+```
+
+En desarrollo (`NODE_ENV !== "production"`) la respuesta agrega `resetUrl` y el backend imprime el enlace en consola. El token crudo viaja en `/reset-password?token=...`; en la base solo se guarda su hash SHA-256 en `PasswordResetToken`, con vencimiento de `RESET_TOKEN_TTL_MIN` minutos (30 por defecto). Generar uno nuevo invalida los anteriores.
+
+`POST /api/auth/reset-password` recibe `{ token, password }`. Si el token no existe, ya fue usado o expiró: `400 { "mensaje": "El enlace de recuperación es inválido o expiró." }`. Al completarse, invalida todos los tokens pendientes del usuario.
+
+### 2.4 Perfil y cambio de contraseña
+
+`GET /api/auth/me` **[auth]** devuelve el usuario autenticado sin `passwordHash`.
+
+`POST /api/auth/change-password` **[auth]** recibe `{ passwordActual, passwordNueva }`. Valida la actual, exige que la nueva cumpla las reglas y sea distinta, y responde `200 { "mensaje": "Contraseña actualizada." }`. También invalida los tokens de recuperación pendientes.
+
+### 2.5 Uso del token
+
+- Enviar `Authorization: Bearer <token>` en todas las rutas de recursos.
+- Sin token: `401 { "mensaje": "Necesitás iniciar sesión para continuar." }`.
+- Token inválido o expirado: `401 { "mensaje": "Sesión inválida o expirada." }`.
+- Sin permisos: `403 { "mensaje": "No tenés permisos para realizar esta acción." }`.
+- El rol `admin` puede operar sobre cualquier usuario; el rol `usuario` queda limitado a sus propios registros.
+
+**Usuario demo:** `santiago@test.com` / `Demo1234` (lo crea `seeds.sql`).
+
+## 3. Usuarios
+
+Base: `/api/users`. Requiere sesión. `POST /api/users` y `GET /api/users` son solo para `admin`; el registro público vive en `/api/auth/register`.
 
 | Método | Ruta | Descripción | Éxito |
 | --- | --- | --- | --- |
@@ -63,21 +130,21 @@ Base: `/api/users`.
 | `PATCH` | `/api/users/:id` | Editar | `200` usuario |
 | `DELETE` | `/api/users/:id` | Baja lógica | `200` `{ mensaje, data }` |
 
-### 2.1 Crear
+### 3.1 Crear
 
 - `nombre`: obligatorio, máximo 100, solo letras y espacios simples.
 - `email`: obligatorio, máximo 150, formato `algo@algo.algo`, se guarda en minúsculas. Es único.
 - `telefono`: opcional, máximo 30, admite números, espacios y `+`, `-`, `(`, `)`. Si viene vacío o `null`, se guarda `null`.
 
-El usuario se crea con `rol: "usuario"` y `activo: true`. Si el email ya existe, responde `409 { "mensaje": "Ya existe un usuario con ese email." }`.
+El usuario se crea con `rol: "usuario"` y `activo: true`. Si el email ya existe, responde `409 { "mensaje": "Ya existe un usuario con ese email." }`. El alta administrativa no define contraseña: el usuario puede establecerla con el flujo de recuperación.
 
-### 2.2 Listar
+### 3.2 Listar
 
 Parámetros: `page`, `limit`, `search`, `sortBy`, `order`, `rol` y `activo`.
 
 `search` busca en `nombre`, `email` y `telefono`. `sortBy` acepta `id`, `nombre`, `email`, `rol`, `activo`, `createdAt` y `updatedAt`; el default es `id`. `rol` acepta `usuario` o `admin`; `activo` acepta `true` o `false`.
 
-### 2.3 Obtener, editar y eliminar
+### 3.3 Obtener, editar y eliminar
 
 `GET /api/users/:id` devuelve el usuario o `404 { "mensaje": "Usuario no encontrado." }`. Un id no entero o menor a 1 responde 400.
 
@@ -85,9 +152,11 @@ Parámetros: `page`, `limit`, `search`, `sortBy`, `order`, `rol` y `activo`.
 
 `DELETE` hace baja lógica: si el usuario está activo, lo pasa a `activo: false`. Responde `{ mensaje: "Usuario dado de baja correctamente.", data: usuario }`.
 
-## 3. Billeteras
+Un usuario común solo puede consultar, editar o darse de baja a sí mismo; un `admin` puede operar sobre cualquier usuario.
 
-Base: `/api/v1/billeteras` (alias `/api/billetera`).
+## 4. Billeteras
+
+Base: `/api/v1/billeteras` (alias `/api/billetera`). Requiere sesión: un usuario ve y administra solo sus billeteras; un `admin` ve todas.
 
 | Método | Ruta | Descripción | Éxito |
 | --- | --- | --- | --- |
@@ -100,17 +169,17 @@ Base: `/api/v1/billeteras` (alias `/api/billetera`).
 
 El alias sin versión es `/api/billetera` (singular): por ejemplo, `GET /api/billetera` y `GET /api/billetera/:id`.
 
-### 3.1 Crear
+### 4.1 Crear
 
-`idUsuario`, `nombre` y `tipo` son obligatorios. El usuario debe existir y estar activo. La billetera se crea con `saldo: "0.00"`.
+`nombre` y `tipo` son obligatorios. El dueño sale del token; un `admin` puede enviar `idUsuario` para crear la billetera a nombre de otro usuario. El usuario debe existir y estar activo. La billetera se crea con `saldo: "0.00"`.
 
-### 3.2 Listar
+### 4.2 Listar
 
 Parámetros: `page`, `limit`, `search`, `sortBy` y `order`.
 
 `search` busca en `nombre` y `tipo`. `sortBy` acepta `idBilletera`, `nombre`, `tipo`, `saldo`, `createdAt` y `updatedAt`; el default es `idBilletera`.
 
-### 3.3 Obtener, editar y eliminar
+### 4.3 Obtener, editar y eliminar
 
 `GET /api/v1/billeteras/:id` devuelve la billetera o `404 { "mensaje": "la billetera no existe" }`. Un id inválido responde 400.
 
@@ -118,9 +187,11 @@ Parámetros: `page`, `limit`, `search`, `sortBy` y `order`.
 
 `DELETE` borra físicamente. Las transacciones asociadas se eliminan por `ON DELETE CASCADE`. Responde `{ mensaje: "Billetera eliminada correctamente.", data: billetera }`.
 
-## 4. Transacciones
+Un usuario común solo puede operar sobre sus propias billeteras; un `admin`, sobre cualquiera.
 
-Base: `/api/transactions`. Este módulo usa `{ error }` en sus respuestas de error.
+## 5. Transacciones
+
+Base: `/api/transactions`. Requiere sesión y usa `{ error }` en sus respuestas de error. Un usuario solo opera sobre movimientos de sus propias billeteras; un `admin` sobre todos.
 
 | Método | Ruta | Descripción | Éxito |
 | --- | --- | --- | --- |
@@ -131,11 +202,11 @@ Base: `/api/transactions`. Este módulo usa `{ error }` en sus respuestas de err
 | `PATCH` | `/api/transactions/:id` | Editar | `200` transacción |
 | `DELETE` | `/api/transactions/:id` | Eliminar y revertir saldo | `200` transacción |
 
-### 4.1 Registrar
+### 5.1 Registrar
 
 Campos:
 
-- `idBilletera`: entero positivo y existente.
+- `idBilletera`: entero positivo y existente, y debe pertenecer al usuario autenticado (un `admin` puede usar cualquiera).
 - `monto`: número o string numérico positivo, hasta dos decimales, sin signo.
 - `tipo`: `ingreso` o `egreso`.
 - `categoria`: obligatoria, máximo 100.
@@ -144,11 +215,11 @@ Campos:
 
 El registro es atómico: actualiza el saldo de la billetera y crea la fila en `Transaccion` dentro de la misma transacción de Sequelize, con bloqueo pesimista de la billetera. Un egreso sin fondos responde `409 { "error": "fondos insuficientes" }`.
 
-### 4.2 Listar
+### 5.2 Listar
 
-`GET /api/transactions` devuelve todas las transacciones ordenadas por `fecha DESC`. Acepta `?idBilletera=N` para filtrar.
+`GET /api/transactions` devuelve las transacciones del usuario ordenadas por `fecha DESC` (un `admin` ve todas). Acepta `?idBilletera=N` para filtrar.
 
-### 4.3 Obtener, editar y eliminar
+### 5.3 Obtener, editar y eliminar
 
 `GET /api/transactions/:id` devuelve la transacción o `404 { "error": "Movimiento no encontrado" }`.
 
@@ -156,9 +227,9 @@ El registro es atómico: actualiza el saldo de la billetera y crea la fila en `T
 
 `DELETE` aplica el movimiento inverso y borra la fila. Si el inverso no tiene fondos suficientes, responde 409 y no borra nada. Devuelve la transacción eliminada.
 
-## 5. Boletas
+## 6. Boletas
 
-Base: `/api/v1/boletas`.
+Base: `/api/v1/boletas`. Requiere sesión: un usuario ve y administra solo sus boletas; un `admin` ve todas.
 
 | Método | Ruta | Descripción | Éxito |
 | --- | --- | --- | --- |
@@ -169,22 +240,21 @@ Base: `/api/v1/boletas`.
 | `PATCH` | `/api/v1/boletas/:id` | Editar | `200` boleta |
 | `DELETE` | `/api/v1/boletas/:id` | Eliminar | `200` `{ mensaje }` |
 
-### 5.1 Listar
+### 6.1 Listar
 
-Devuelve las boletas ordenadas por `fechaVencimiento ASC`.
+Devuelve las boletas del usuario ordenadas por `fechaVencimiento ASC` (un `admin` ve todas).
 
-### 5.2 Crear
+### 6.2 Crear
 
 - `tipoServicio`: obligatorio; `luz`, `agua`, `gas`, `internet` u `otro`.
 - `monto`: obligatorio, mayor a 0.
 - `fechaVencimiento`: obligatoria.
 - `pagada`: opcional, default `false`.
 - `fechaPago`: obligatoria cuando `pagada` es `true`.
-- `idUsuario`: opcional; si no viene, se usa el usuario de demostración.
 
-`tipoServicio` se valida contra el `CHECK` de la tabla.
+El dueño sale del token. `tipoServicio` se valida contra el `CHECK` de la tabla.
 
-### 5.3 Obtener, editar y eliminar
+### 6.3 Obtener, editar y eliminar
 
 `GET /api/v1/boletas/:id` devuelve la boleta o `404 { "mensaje": "Boleta no encontrada" }`.
 
@@ -192,9 +262,11 @@ Devuelve las boletas ordenadas por `fechaVencimiento ASC`.
 
 `DELETE` borra físicamente y responde `200 { "mensaje": "Boleta eliminada" }`.
 
-## 6. Suscripciones
+Un usuario común solo puede operar sobre sus propias boletas; un `admin`, sobre cualquiera.
 
-Base: `/api/v1/suscripciones` (alias `/api/suscripciones`).
+## 7. Suscripciones
+
+Base: `/api/v1/suscripciones` (alias `/api/suscripciones`). Requiere sesión: un usuario ve y administra solo sus suscripciones; un `admin` ve todas.
 
 | Método | Ruta | Descripción | Éxito |
 | --- | --- | --- | --- |
@@ -205,22 +277,22 @@ Base: `/api/v1/suscripciones` (alias `/api/suscripciones`).
 | `PATCH` | `/api/v1/suscripciones/:id` | Editar | `200` suscripción |
 | `DELETE` | `/api/v1/suscripciones/:id` | Eliminar | `200` `{ mensaje, data }` |
 
-### 6.1 Crear
+### 7.1 Crear
 
-- `idUsuario`: entero positivo; el usuario debe existir y estar activo.
+- `idUsuario`: opcional; el dueño sale del token. Un `admin` puede enviarlo para crear la suscripción a nombre de otro usuario. El usuario debe existir y estar activo.
 - `proveedor` y `plan`: strings obligatorios, máximo 100.
 - `monto`: número o string numérico positivo con hasta dos decimales; se normaliza a dos decimales.
 - `diaCobro`: entero entre 1 y 31.
 - `activa`: booleano opcional, default `true`.
 - `idTarjeta`: opcional. Si viene, debe existir, estar activa y pertenecer al mismo `idUsuario`.
 
-### 6.2 Listar
+### 7.2 Listar
 
 Parámetros: `page`, `limit`, `search`, `sortBy`, `order`, `idUsuario` y `activa`.
 
-`search` busca en `proveedor` y `plan`. `sortBy` acepta `idSuscripcion`, `proveedor`, `plan`, `monto`, `diaCobro`, `activa`, `createdAt` y `updatedAt`; el default es `idSuscripcion`. `idUsuario` debe ser entero positivo y `activa` debe ser `true` o `false`.
+`search` busca en `proveedor` y `plan`. `sortBy` acepta `idSuscripcion`, `proveedor`, `plan`, `monto`, `diaCobro`, `activa`, `createdAt` y `updatedAt`; el default es `idSuscripcion`. `idUsuario` debe ser entero positivo y solo lo aprovecha un `admin`; un usuario común queda acotado a sus propias suscripciones. `activa` debe ser `true` o `false`.
 
-### 6.3 Obtener, editar y eliminar
+### 7.3 Obtener, editar y eliminar
 
 `GET` devuelve la suscripción o `404 { "mensaje": "La suscripción no existe." }`.
 
@@ -228,9 +300,11 @@ Parámetros: `page`, `limit`, `search`, `sortBy`, `order`, `idUsuario` y `activa
 
 `DELETE` borra físicamente y responde `{ mensaje: "Suscripción eliminada correctamente.", data: suscripción }`.
 
-## 7. Tarjetas
+Un usuario común solo puede operar sobre sus propias suscripciones; un `admin`, sobre cualquiera.
 
-Base: `/api/v1/tarjetas`.
+## 8. Tarjetas
+
+Base: `/api/v1/tarjetas`. Requiere sesión: un usuario ve y administra solo sus tarjetas; un `admin` ve todas.
 
 | Método | Ruta | Descripción | Éxito |
 | --- | --- | --- | --- |
@@ -241,9 +315,9 @@ Base: `/api/v1/tarjetas`.
 | `PATCH` | `/api/v1/tarjetas/:id` | Editar | `200` tarjeta |
 | `DELETE` | `/api/v1/tarjetas/:id` | Eliminar | `200` `{ mensaje, data }` |
 
-### 7.1 Crear
+### 8.1 Crear
 
-- `idUsuario`: entero positivo; el usuario debe existir y estar activo.
+- `idUsuario`: opcional; el dueño sale del token. Un `admin` puede enviarlo para crear la tarjeta a nombre de otro usuario. El usuario debe existir y estar activo.
 - `tipo`: `visa`, `mastercard`, `amex` u `otra`.
 - `ultimosCuatro`: string de exactamente 4 dígitos.
 - `titular`: string de letras y espacios, máximo 100.
@@ -252,16 +326,18 @@ Base: `/api/v1/tarjetas`.
 
 Solo se guardan los últimos cuatro dígitos; no se almacena el número completo ni el CVV.
 
-### 7.2 Listar
+### 8.2 Listar
 
 Parámetros: `page`, `limit`, `search`, `sortBy`, `order`, `idUsuario`, `activa` y `tipo`.
 
-`search` busca en `titular`, `ultimosCuatro` y `tipo`. `sortBy` acepta `id`, `tipo`, `ultimosCuatro`, `titular`, `vencimiento`, `activa`, `createdAt` y `updatedAt`; el default es `id`. `idUsuario` debe ser entero positivo, `activa` debe ser `true` o `false` y `tipo` debe ser uno de los cuatro valores.
+`search` busca en `titular`, `ultimosCuatro` y `tipo`. `sortBy` acepta `id`, `tipo`, `ultimosCuatro`, `titular`, `vencimiento`, `activa`, `createdAt` y `updatedAt`; el default es `id`. `idUsuario` debe ser entero positivo y solo lo aprovecha un `admin`; un usuario común queda acotado a sus propias tarjetas. `activa` debe ser `true` o `false` y `tipo` debe ser uno de los cuatro valores.
 
-### 7.3 Obtener, editar y eliminar
+### 8.3 Obtener, editar y eliminar
 
 `GET` devuelve la tarjeta o `404 { "mensaje": "La tarjeta no existe." }`.
 
 `PUT` y `PATCH` aceptan `tipo`, `ultimosCuatro`, `titular`, `vencimiento` y `activa`. `idUsuario` en el body responde 400. Una clave desconocida o un body vacío también responden 400.
 
 `DELETE` borra físicamente y responde `{ mensaje: "Tarjeta eliminada correctamente.", data: tarjeta }`.
+
+Un usuario común solo puede operar sobre sus propias tarjetas; un `admin`, sobre cualquiera.
