@@ -110,8 +110,8 @@ Así se evita el error clásico de punto flotante (`0.10 + 0.20`) y el saldo coi
 La lógica crítica está cubierta con Vitest:
 
 - 35 tests de backend: Strategy (ingreso, egreso, saldo exacto, fondos insuficientes, precisión decimal), validaciones de usuarios y tarjetas, baja lógica y paginación, y autenticación (registro, login, recuperación y cambio de contraseña).
-- 9 tests de frontend: períodos, filtros, agrupaciones y porciones del gráfico de gastos.
+- 47 tests de frontend: períodos, filtros, calendario, agrupaciones y porciones del gráfico de gastos.
 
-En total son 44 tests. El comando `pnpm check` ejecuta lint, typecheck y tests, y el workflow de GitHub Actions lo corre en cada push y pull request con Node 24 y pnpm 12.18.0. Eso permite detectar regresiones antes de integrar cambios.
+En total son 82 tests. El comando `pnpm check` ejecuta lint, typecheck y tests, y el workflow de GitHub Actions lo corre en cada push y pull request con Node 24 y pnpm 12.18.0. Eso permite detectar regresiones antes de integrar cambios. El detalle de los casos y la evidencia de calidad está en [Calidad y pruebas](calidad.md).
 
 Además, las estrategias se prueban en memoria, sin base de datos, porque el patrón las mantiene desacopladas de la persistencia.

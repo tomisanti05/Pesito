@@ -9,6 +9,7 @@ Documentación específica:
 - [Arquitectura](docs/arquitectura.md)
 - [API](docs/api.md)
 - [Decisiones de diseño](docs/decisiones-diseño.md)
+- [Calidad y pruebas](docs/calidad.md)
 - [Frontend](apps/frontend/README.md)
 - [Diagrama E-R](docs/Diagrama%20E-R.png)
 
