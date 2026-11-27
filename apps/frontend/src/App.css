@@ -15,3 +15,9 @@
   align-items: center; 
   box-sizing: border-box;
 }
+
+.estado-auth {
+  margin: auto;
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}

@@ -1,7 +1,12 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/useAuth'
+import { LogOut } from 'lucide-react'
 import '../layout.css'
 
 export default function Layout() {
+    const { usuario, cerrarSesion } = useAuth()
+    const navigate = useNavigate()
+
     const sidebarLinks = [
 
         { path: "/inicio", name: "Inicio"},
@@ -12,11 +17,17 @@ export default function Layout() {
         { path: "/subscripciones", name: "Subscripciones"},
         { path: "/miCuenta", name: "Mi cuenta"}
         ];
+
+    function salir() {
+        cerrarSesion()
+        navigate("/login", { replace: true })
+    }
+
     return(
         <aside className='sidebar-card'>
         
         <div className="sidebar-header">
-        <h1>Bienvenido "Nombre"</h1>
+        <h1>Bienvenido {usuario ? `"${usuario.nombre.split(" ")[0]}"` : ''}</h1>
         </div>
         <nav className="sidebar-menu">
                 {sidebarLinks.map((link) => (
@@ -32,7 +43,16 @@ export default function Layout() {
                     </NavLink>
                 ))}
         </nav>
+        <button
+            type="button"
+            className="sidebar-logout"
+            onClick={salir}
+        >
+            <LogOut size={16} />
+            <span>Cerrar sesión</span>
+        </button>
     </aside>
     )
     
+
 }

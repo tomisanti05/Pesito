@@ -48,3 +48,24 @@
   color: #5b3ce6 ;
   font-weight: 600;
 }
+
+.sidebar-logout {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  background-color: transparent;
+  color: #b91c1c;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.sidebar-logout:hover {
+  background-color: #fef2f2;
+}
