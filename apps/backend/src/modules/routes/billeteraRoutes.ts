@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { authMiddleware } from "../../middleware/authMiddleware.js";
 import {
     listarBilleteras,
     crearBilletera,
@@ -8,6 +9,9 @@ import {
 } from "../controllers/billeteraController.js";
 
 const router = Router();
+
+// Todas las rutas requieren sesión iniciada
+router.use(authMiddleware);
 
 // GET /api/v1/billeteras -> Listado paginado
 router.get("/", listarBilleteras);

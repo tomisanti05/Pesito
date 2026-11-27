@@ -53,6 +53,10 @@ function parsearFiltros(req: Request): tarjetaService.FiltrosTarjeta {
   return filtros;
 }
 
+function scopeUsuario(req: Request): number | undefined {
+  return req.usuario!.rol === "admin" ? undefined : req.usuario!.id;
+}
+
 // GET /api/v1/tarjetas -> Listado paginado con búsqueda y filtros
 export async function listarTarjetas(req: Request, res: Response): Promise<void> {
   try {
@@ -62,6 +66,9 @@ export async function listarTarjetas(req: Request, res: Response): Promise<void>
       "id",
     );
     const filtros = parsearFiltros(req);
+    const idUsuario = scopeUsuario(req);
+    // Un usuario normal solo ve sus propias tarjetas.
+    if (idUsuario !== undefined) filtros.idUsuario = idUsuario;
     const resultado = await tarjetaService.listarTarjetas(paginacion, filtros);
     res.status(200).json(resultado);
   } catch (error: any) {
@@ -72,7 +79,12 @@ export async function listarTarjetas(req: Request, res: Response): Promise<void>
 // POST /api/v1/tarjetas
 export async function crearTarjeta(req: Request, res: Response): Promise<void> {
   try {
-    const nueva = await tarjetaService.crearTarjeta(req.body ?? {});
+    // El propietario sale del token. Un admin puede crear para otro usuario.
+    const idUsuario =
+      req.usuario!.rol === "admin" && req.body?.idUsuario
+        ? req.body.idUsuario
+        : req.usuario!.id;
+    const nueva = await tarjetaService.crearTarjeta({ ...req.body, idUsuario });
     res.status(201).json(nueva);
   } catch (error: any) {
     responderError(res, error);
@@ -85,7 +97,7 @@ export async function obtenerTarjetaPorId(req: Request, res: Response): Promise<
     const idTarjeta = parsearId(req, res);
     if (idTarjeta === null) return;
 
-    const tarjeta = await tarjetaService.obtenerTarjetaPorId(idTarjeta);
+    const tarjeta = await tarjetaService.obtenerTarjetaPorId(idTarjeta, scopeUsuario(req));
     res.status(200).json(tarjeta);
   } catch (error: any) {
     responderError(res, error);
@@ -98,7 +110,7 @@ export async function editarTarjeta(req: Request, res: Response): Promise<void> 
     const idTarjeta = parsearId(req, res);
     if (idTarjeta === null) return;
 
-    const tarjeta = await tarjetaService.editarTarjeta(idTarjeta, req.body ?? {});
+    const tarjeta = await tarjetaService.editarTarjeta(idTarjeta, req.body ?? {}, scopeUsuario(req));
     res.status(200).json(tarjeta);
   } catch (error: any) {
     responderError(res, error);
@@ -111,7 +123,7 @@ export async function eliminarTarjeta(req: Request, res: Response): Promise<void
     const idTarjeta = parsearId(req, res);
     if (idTarjeta === null) return;
 
-    const tarjeta = await tarjetaService.eliminarTarjeta(idTarjeta);
+    const tarjeta = await tarjetaService.eliminarTarjeta(idTarjeta, scopeUsuario(req));
     res.status(200).json({
       mensaje: "Tarjeta eliminada correctamente.",
       data: tarjeta,

@@ -7,9 +7,13 @@ function responderError(res: Response, error: any): void {
   res.status(status).json({ mensaje });
 }
 
+function scopeUsuario(req: Request): number | undefined {
+  return req.usuario!.rol === "admin" ? undefined : req.usuario!.id;
+}
+
 export async function listarBoletas(req: Request, res: Response): Promise<void> {
   try {
-    const boletas = await boletaService.listarBoletas();
+    const boletas = await boletaService.listarBoletas(scopeUsuario(req));
     res.status(200).json(boletas);
   } catch (error: any) {
     responderError(res, error);
@@ -18,7 +22,8 @@ export async function listarBoletas(req: Request, res: Response): Promise<void> 
 
 export async function crearBoleta(req: Request, res: Response): Promise<void> {
   try {
-    const boleta = await boletaService.crearBoleta(req.body);
+    // El propietario sale del token, no del body.
+    const boleta = await boletaService.crearBoleta(req.body, req.usuario!.id);
     res.status(201).json(boleta);
   } catch (error: any) {
     responderError(res, error);
@@ -27,7 +32,7 @@ export async function crearBoleta(req: Request, res: Response): Promise<void> {
 
 export async function obtenerBoleta(req: Request, res: Response): Promise<void> {
   try {
-    const boleta = await boletaService.obtenerBoleta(Number(req.params.id));
+    const boleta = await boletaService.obtenerBoleta(Number(req.params.id), scopeUsuario(req));
     res.status(200).json(boleta);
   } catch (error: any) {
     responderError(res, error);
@@ -36,7 +41,7 @@ export async function obtenerBoleta(req: Request, res: Response): Promise<void> 
 
 export async function editarBoleta(req: Request, res: Response): Promise<void> {
   try {
-    const boleta = await boletaService.editarBoleta(Number(req.params.id), req.body);
+    const boleta = await boletaService.editarBoleta(Number(req.params.id), req.body, scopeUsuario(req));
     res.status(200).json(boleta);
   } catch (error: any) {
     responderError(res, error);
@@ -45,7 +50,7 @@ export async function editarBoleta(req: Request, res: Response): Promise<void> {
 
 export async function eliminarBoleta(req: Request, res: Response): Promise<void> {
   try {
-    const boleta = await boletaService.eliminarBoleta(Number(req.params.id));
+    const boleta = await boletaService.eliminarBoleta(Number(req.params.id), scopeUsuario(req));
     res.status(200).json(boleta);
   } catch (error: any) {
     responderError(res, error);
