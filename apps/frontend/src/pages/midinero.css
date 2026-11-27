@@ -259,6 +259,24 @@
   font-size: 0.9rem;
 }
 
+.midinero-ver-todos {
+  display: inline-block;
+  margin-top: 12px;
+  color: var(--color-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.midinero-ver-todos:hover {
+  text-decoration: underline;
+}
+
+.midinero-ver-todos:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  border-radius: 4px;
+}
+
 .midinero-error {
   display: flex;
   align-items: center;

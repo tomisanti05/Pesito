@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import './midinero.css';
 import GraficoTorta from '../components/GraficoTorta';
 import {
@@ -109,6 +110,8 @@ function MiDinero() {
       ? movimiento.tipo === 'ingreso'
       : movimiento.tipo === 'egreso';
   });
+
+  const movimientosVisibles = movimientosFiltrados.slice(0, 10);
 
   const transaccionesPeriodo = useMemo(
     () => filtrarPorPeriodo(movimientos, periodoGrafico),
@@ -310,7 +313,7 @@ function MiDinero() {
             {movimientosFiltrados.length === 0 ? (
               <p className="midinero-vacio">No hay movimientos para mostrar.</p>
             ) : (
-              movimientosFiltrados.map((movimiento) => {
+              movimientosVisibles.map((movimiento) => {
                 const esGasto = movimiento.tipo === 'egreso';
                 const tipoVisual = esGasto ? 'gasto' : 'ingreso';
                 return (
@@ -331,6 +334,12 @@ function MiDinero() {
                   </div>
                 );
               })
+            )}
+
+            {movimientosFiltrados.length > 10 && (
+              <Link className="midinero-ver-todos" to="/transacciones">
+                Ver todos los movimientos ({movimientosFiltrados.length})
+              </Link>
             )}
           </section>
 
