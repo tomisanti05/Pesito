@@ -14,7 +14,7 @@ import {
   apiPatch,
   apiPost,
 } from "../services/api";
-import type { ListaPaginada, Tarjeta, TipoTarjeta } from "../types/finanzas";
+import type { ListaPaginada, Suscripcion, Tarjeta, TipoTarjeta } from "../types/finanzas";
 
 const TIPOS: { valor: TipoTarjeta; etiqueta: string }[] = [
   { valor: "visa", etiqueta: "Visa" },
@@ -79,6 +79,7 @@ function TarjetaVisual({ tarjeta }: { tarjeta: Tarjeta }) {
 
 export default function Tarjetas() {
   const [tarjetas, setTarjetas] = useState<Tarjeta[]>([]);
+  const [suscripciones, setSuscripciones] = useState<Suscripcion[]>([]);
   const [indice, setIndice] = useState(0);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -93,11 +94,13 @@ export default function Tarjetas() {
 
   const cargarTarjetas = useCallback(async () => {
     try {
-      const lista = await apiGet<ListaPaginada<Tarjeta>>(
-        // El backend filtra por el usuario autenticado (token JWT).
-        `/tarjetas?limit=100&sortBy=id&order=desc`,
-      );
+      // Ambos listados vienen filtrados por el usuario autenticado (token JWT).
+      const [lista, suscripcionesApi] = await Promise.all([
+        apiGet<ListaPaginada<Tarjeta>>(`/tarjetas?limit=100&sortBy=id&order=desc`),
+        apiGet<ListaPaginada<Suscripcion>>(`/suscripciones?limit=100&sortBy=id&order=desc`),
+      ]);
       setTarjetas(lista.data);
+      setSuscripciones(suscripcionesApi.data);
       setIndice((actual) =>
         lista.data.length === 0 ? 0 : Math.min(actual, lista.data.length - 1),
       );
@@ -136,6 +139,13 @@ export default function Tarjetas() {
   }, [modalAbierto, tarjetaAEliminar, guardando, borrando]);
 
   const tarjetaActual = tarjetas[indice] ?? null;
+  // Historial de la tarjeta: las suscripciones que le cobran a esta tarjeta.
+  const suscripcionesTarjeta = tarjetaActual
+    ? suscripciones.filter((s) => s.idTarjeta === tarjetaActual.id)
+    : [];
+  const gastoMensualTarjeta = suscripcionesTarjeta
+    .filter((s) => s.activa)
+    .reduce((total, s) => total + Number(s.monto), 0);
 
   function irAnterior() {
     if (tarjetas.length <= 1) return;
@@ -375,10 +385,40 @@ export default function Tarjetas() {
 
           <aside className="tarjetas-panel tarjetas-historial">
             <h2>Historial</h2>
-            <p className="tarjetas-historial-vacio">
-              El historial por tarjeta va a estar disponible cuando se vinculen
-              los movimientos.
-            </p>
+
+            {suscripcionesTarjeta.length === 0 ? (
+              <p className="tarjetas-historial-vacio">
+                Esta tarjeta no tiene suscripciones asociadas todavía. Creá una
+                suscripción y asignale esta tarjeta para ver sus cargos acá.
+              </p>
+            ) : (
+              <>
+                <ul className="tarjetas-historial-lista">
+                  {suscripcionesTarjeta.map((s) => (
+                    <li key={s.idSuscripcion} className="tarjetas-historial-item">
+                      <div className="tarjetas-historial-info">
+                        <span className="tarjetas-historial-proveedor">
+                          {s.proveedor}
+                        </span>
+                        <span className="tarjetas-historial-detalle">
+                          {s.plan} · cobra el día {s.diaCobro}
+                          {s.activa ? "" : " · pausada"}
+                        </span>
+                      </div>
+                      <span className="tarjetas-historial-monto">
+                        ${Number(s.monto).toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="tarjetas-historial-total">
+                  <span>Gasto mensual de esta tarjeta</span>
+                  <strong>
+                    ${gastoMensualTarjeta.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                  </strong>
+                </div>
+              </>
+            )}
           </aside>
         </div>
       )}
