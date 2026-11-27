@@ -1,4 +1,4 @@
-# Sistema de Gestión de Finanzas
+# Pesito — Sistema de Gestión de Finanzas
 
 Aplicación web para controlar ingresos, gastos, billeteras, tarjetas, suscripciones y boletas. Es un monorepo con un backend Express 5 + TypeScript y un frontend React 19 + Vite, desplegado como un único proyecto en Vercel.
 
@@ -86,8 +86,8 @@ Si usás Supabase no hace falta instalar PostgreSQL en tu máquina.
 ### 1. Clonar e instalar
 
 ```bash
-git clone https://github.com/tomisanti05/Sistema-Gestion-Finanzas.git
-cd Sistema-Gestion-Finanzas
+git clone https://github.com/tomisanti05/Pesito.git
+cd Pesito
 corepack enable
 pnpm install
 ```
