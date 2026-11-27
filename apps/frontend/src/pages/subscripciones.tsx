@@ -96,7 +96,6 @@ export default function Subscripciones() {
 
   useEffect(() => {
     const temporizador = window.setTimeout(() => {
-      setCargando(true);
       setBusquedaAplicada(busqueda.trim());
       setPagina(1);
     }, 300);
@@ -104,6 +103,7 @@ export default function Subscripciones() {
   }, [busqueda]);
 
   const cargarSuscripciones = useCallback(async () => {
+    setCargando(true);
     try {
       const params = new URLSearchParams({
         page: String(pagina),

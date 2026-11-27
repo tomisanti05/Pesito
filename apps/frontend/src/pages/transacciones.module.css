@@ -1,8 +1,8 @@
 .pagina {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-width: 800px;
 }
 
 .cabecera {
@@ -28,8 +28,10 @@
   align-items: center;
   gap: 16px;
   padding: 12px 16px;
-  border: 1px solid rgba(128, 128, 128, 0.3);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
   border-radius: 8px;
+  box-shadow: var(--shadow-card);
 }
 
 .detalle {
@@ -166,4 +168,55 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+@media (max-width: 720px) {
+  .cabecera {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .buscador {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .fila {
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+
+  .detalle {
+    flex: 1 1 100%;
+  }
+
+  .acciones {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .paginacion {
+    flex-wrap: wrap;
+  }
+
+  .error {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .acciones {
+    flex-direction: column;
+  }
+
+  .acciones button {
+    width: 100%;
+  }
+
+  .paginacion {
+    gap: 8px;
+  }
 }
