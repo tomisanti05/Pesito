@@ -1,0 +1,622 @@
+.selector-periodo,
+.selector-periodo *,
+.selector-periodo *::before,
+.selector-periodo *::after {
+  box-sizing: border-box;
+}
+
+.selector-periodo {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+}
+
+.selector-periodo-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  border: 1px solid var(--color-border-default);
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border-radius: 10px;
+  padding: 8px 11px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.selector-periodo-trigger:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.selector-periodo-trigger[aria-expanded='true'] {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.selector-periodo-trigger > svg {
+  flex-shrink: 0;
+  color: var(--color-icon-muted);
+}
+
+.selector-periodo-trigger[aria-expanded='true'] > svg {
+  color: var(--color-primary);
+}
+
+.selector-periodo-chevron {
+  transition: transform 0.15s ease;
+}
+
+.selector-periodo-trigger[aria-expanded='true'] .selector-periodo-chevron {
+  transform: rotate(180deg);
+}
+
+.selector-periodo-trigger:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.selector-periodo-etiqueta {
+  flex: 1;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selector-periodo-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  width: 392px;
+  max-width: calc(100vw - 24px);
+  max-height: min(80vh, var(--selector-periodo-alto, 680px));
+  overflow-y: auto;
+  padding: 14px;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: 16px;
+  box-shadow: var(--shadow-modal);
+  color: var(--color-text-body);
+  animation: selector-periodo-aparecer 0.16s ease-out;
+}
+
+.selector-periodo-panel.arriba {
+  top: auto;
+  bottom: calc(100% + 8px);
+}
+
+.selector-periodo-panel:focus {
+  outline: none;
+}
+
+.selector-periodo-panel button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.selector-periodo-backdrop {
+  display: none;
+}
+
+.selector-periodo-topbar {
+  display: none;
+}
+
+.selector-periodo-atajos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.selector-periodo-atajo {
+  border: 1px solid var(--color-border-default);
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  border-radius: 999px;
+  padding: 6px 11px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.selector-periodo-atajo:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-body);
+}
+
+.selector-periodo-atajo.activo {
+  background-color: var(--color-primary-light);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.selector-periodo-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 12px;
+  background-color: var(--color-bg-hover);
+  border-radius: 10px;
+}
+
+.selector-periodo-tab {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-radius: 7px;
+  padding: 7px 8px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.selector-periodo-tab:hover:not([aria-selected='true']) {
+  color: var(--color-text-body);
+}
+
+.selector-periodo-tab[aria-selected='true'] {
+  background-color: var(--color-bg-surface);
+  color: var(--color-primary);
+  box-shadow: 0 1px 3px rgba(17, 24, 39, 0.12);
+}
+
+.selector-periodo-anio,
+.selector-periodo-rango-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.selector-periodo-anio > span {
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.selector-periodo-rango-header > span {
+  color: var(--color-text-primary);
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.selector-periodo-flecha {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-body);
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.selector-periodo-flecha:hover:not(:disabled) {
+  background-color: var(--color-bg-hover);
+}
+
+.selector-periodo-flecha:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.selector-periodo-meses {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.selector-periodo-mes-boton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 38px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-body);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.selector-periodo-mes-boton:hover:not(:disabled) {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.selector-periodo-mes-boton.activo {
+  background-color: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.selector-periodo-mes-boton:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.selector-periodo-punto {
+  width: 5px;
+  height: 5px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+}
+
+.selector-periodo-mes-boton.activo .selector-periodo-punto {
+  background-color: #fff;
+}
+
+.selector-periodo-calendarios {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.selector-periodo-mes {
+  min-width: 0;
+}
+
+.selector-periodo-mes-titulo {
+  margin: 0 0 6px;
+  color: var(--color-text-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.selector-periodo-semana,
+.selector-periodo-dias {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.selector-periodo-semana {
+  margin-bottom: 2px;
+}
+
+.selector-periodo-semana span {
+  padding: 2px 0;
+  color: var(--color-icon-muted);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.selector-periodo-dias {
+  row-gap: 2px;
+}
+
+.selector-periodo-dia {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-body);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.selector-periodo-dia-numero {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 0.74rem;
+  line-height: 1;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.selector-periodo-dia:hover:not(:disabled) .selector-periodo-dia-numero {
+  background-color: var(--color-bg-hover);
+}
+
+.selector-periodo-dia.hoy:not(.inicio):not(.fin) .selector-periodo-dia-numero {
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.selector-periodo-dia.en-rango::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 24px;
+  background-color: var(--color-primary-light);
+  transform: translateY(-50%);
+}
+
+.selector-periodo-dia.inicio::before {
+  left: 50%;
+  border-radius: 999px 0 0 999px;
+}
+
+.selector-periodo-dia.fin::before {
+  right: 50%;
+  border-radius: 0 999px 999px 0;
+}
+
+.selector-periodo-dia.inicio.fin::before {
+  display: none;
+}
+
+.selector-periodo-dia.inicio .selector-periodo-dia-numero,
+.selector-periodo-dia.fin .selector-periodo-dia-numero {
+  background-color: var(--color-primary);
+  color: #fff;
+  font-weight: 700;
+}
+
+.selector-periodo-dia.fuera:not(.inicio):not(.fin)
+  .selector-periodo-dia-numero {
+  color: var(--color-icon-muted);
+  opacity: 0.55;
+}
+
+.selector-periodo-dia.futuro {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.selector-periodo-dia.futuro::before {
+  display: none;
+}
+
+.selector-periodo-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 12px -14px 0;
+  padding: 12px 14px;
+  background-color: var(--color-bg-surface);
+  border-top: 1px solid var(--color-border-subtle);
+  box-shadow: 0 -4px 12px rgba(17, 24, 39, 0.04);
+}
+
+.selector-periodo-resumen {
+  flex: 1 1 150px;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.selector-periodo-acciones {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.selector-periodo-btn {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.selector-periodo-btn.secundario {
+  background-color: var(--color-bg-surface);
+  border-color: var(--color-border-default);
+  color: var(--color-text-body);
+}
+
+.selector-periodo-btn.secundario:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.selector-periodo-btn.primario {
+  background-color: var(--color-primary);
+  color: #fff;
+}
+
+.selector-periodo-btn.primario:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+}
+
+.selector-periodo-btn.primario:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes selector-periodo-aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes selector-periodo-fondo {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes selector-periodo-hoja {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .selector-periodo {
+    width: 100%;
+  }
+
+  .selector-periodo-trigger {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .selector-periodo-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: block;
+    background-color: var(--color-overlay);
+    animation: selector-periodo-fondo 0.15s ease-out;
+  }
+
+  .selector-periodo-panel,
+  .selector-periodo-panel.arriba {
+    position: fixed;
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 41;
+    width: 100%;
+    max-width: none;
+    max-height: 88vh;
+    padding: 8px 16px 0;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 20px 20px 0 0;
+    animation: selector-periodo-hoja 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .selector-periodo-topbar {
+    position: relative;
+    display: block;
+    height: 26px;
+    margin-bottom: 2px;
+  }
+
+  .selector-periodo-grabber {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    display: block;
+    width: 40px;
+    height: 4px;
+    border-radius: 999px;
+    background-color: var(--color-border-default);
+    transform: translateX(-50%);
+  }
+
+  .selector-periodo-cerrar {
+    position: absolute;
+    top: -3px;
+    right: -4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+  }
+
+  .selector-periodo-cerrar:hover {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-primary);
+  }
+
+  .selector-periodo-calendarios {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .selector-periodo-mes-boton {
+    min-height: 42px;
+  }
+
+  .selector-periodo-dia-numero {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
+  }
+
+  .selector-periodo-dia.en-rango::before {
+    height: 28px;
+  }
+
+  .selector-periodo-footer {
+    margin: 12px -16px 0;
+    padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
+    border-radius: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selector-periodo-panel,
+  .selector-periodo-backdrop {
+    animation: none;
+  }
+
+  .selector-periodo-chevron,
+  .selector-periodo-atajo,
+  .selector-periodo-tab,
+  .selector-periodo-flecha,
+  .selector-periodo-mes-boton,
+  .selector-periodo-dia-numero {
+    transition: none;
+  }
+}

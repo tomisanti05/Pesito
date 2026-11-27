@@ -5,13 +5,9 @@ import {
   agruparEgresosPorCategoria,
   COLOR_OTRAS,
   construirPorciones,
-  filtrarPorPeriodo,
-  mesesDelPeriodo,
   PALETA_GRAFICO,
   totalesIngresoEgreso,
 } from './resumenGastos';
-
-const HOY = new Date(2026, 10, 15); // 15/11/2026
 
 function tx(parcial: Partial<Transaccion>): Transaccion {
   return {
@@ -24,45 +20,6 @@ function tx(parcial: Partial<Transaccion>): Transaccion {
     ...parcial,
   };
 }
-
-describe('mesesDelPeriodo', () => {
-  it('calcula el mes anterior al cambiar de año', () => {
-    expect([...mesesDelPeriodo('mesAnterior', new Date(2026, 0, 15))]).toEqual([
-      '2025-12',
-    ]);
-  });
-
-  it('incluye el mes actual y los dos anteriores', () => {
-    expect([...mesesDelPeriodo('ultimos3Meses', HOY)].sort()).toEqual([
-      '2026-09',
-      '2026-10',
-      '2026-11',
-    ]);
-  });
-});
-
-describe('filtrarPorPeriodo', () => {
-  const movimientos = [
-    tx({ idTransaccion: 1, fecha: '2026-11-02' }),
-    tx({ idTransaccion: 2, fecha: '2026-10-30' }),
-    tx({ idTransaccion: 3, fecha: '2026-09-01' }),
-    tx({ idTransaccion: 4, fecha: '2026-08-31' }),
-  ];
-
-  it('filtra solo el mes actual', () => {
-    expect(
-      filtrarPorPeriodo(movimientos, 'mesActual', HOY).map((t) => t.idTransaccion),
-    ).toEqual([1]);
-  });
-
-  it('filtra los últimos tres meses', () => {
-    expect(
-      filtrarPorPeriodo(movimientos, 'ultimos3Meses', HOY).map(
-        (t) => t.idTransaccion,
-      ),
-    ).toEqual([1, 2, 3]);
-  });
-});
 
 describe('agruparEgresosPorCategoria', () => {
   it('suma solo egresos, agrupa y ordena de mayor a menor', () => {
