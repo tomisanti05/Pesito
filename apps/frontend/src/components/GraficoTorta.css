@@ -1,7 +1,7 @@
 .grafico-torta {
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr);
-  gap: 24px;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 32px;
   align-items: center;
 }
 
@@ -12,6 +12,7 @@
 
 .grafico-torta-donut svg {
   display: block;
+  width: 168px;
   max-width: 100%;
   height: auto;
 }
